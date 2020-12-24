@@ -1,0 +1,22 @@
+version: '3.0'
+services:
+  postgres:
+    image: library/postgres:13.0
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+
+  elasticsearch:
+    image: library/elasticsearch:7.10.1
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ports:
+      - "127.0.0.1:9200:9200"
+      - "127.0.0.1:9300:9300"
+    volumes:
+      - ./data/esdata:/usr/share/elasticsearch/data

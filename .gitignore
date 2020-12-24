@@ -1,0 +1,9 @@
+# data/ ignores
+data/
+
+# server/ ignores
+server/.bundle
+server/log/*
+server/tmp/*
+server/.byebug_history
+server/config/master.key
