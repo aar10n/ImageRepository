@@ -2,6 +2,7 @@ UPLOAD_TTL = 10 * 60 * 60 # 10 hours
 
 module ImageServices
   class UploadImage
+
     # @param files [Array<ActionDispatch::Http::UploadedFile>]
     def initialize(files)
       @expiry_base = Time.now
@@ -15,6 +16,10 @@ module ImageServices
       end
     end
 
+    # Creates new +Image+ and +Upload+ records from the given image data.
+    # The images aren't considered uploaded until their metadata has been
+    # provided via a PATCH request to the url returned by this function.
+    # @return [String] The location of the image resource(s).
     def call
       batch_id = SecureRandom.uuid
 
@@ -45,6 +50,9 @@ module ImageServices
 
     private
 
+    # @param batch_id [String]
+    # @param image_id [String]
+    # @return [Hash{Symbol => String, Time}]
     def upload_params(batch_id, image_id)
       {
         batch_id: batch_id,

@@ -1,8 +1,7 @@
-##
-# Represets a collection of created resources.
-# This is not to be confused with the `Image` class, as this
-# only contains information about created resources and has
-# nothing to do with the uploaded content itself.
+# Represents an uploaded but not yet published image.
+# After the image data is initially uploaded, an +Upload+
+# record is created that allows the image metadata to be
+# filled in via a PATCH request to a special url.
 class Upload < ApplicationRecord
   include ActiveModel::Serialization
 

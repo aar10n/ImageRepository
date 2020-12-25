@@ -20,9 +20,9 @@ module Api
 
       key, data = validate_update_params!
       images = ImageServices::UploadMetadata.new(
-        id: params[key],
+        id: params[key].to_s,
         data: data,
-        batch: key == :batch_id
+        is_batch: key == :batch_id
       ).call
 
       render status: 200, json: images

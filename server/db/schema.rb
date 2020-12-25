@@ -43,6 +43,7 @@ ActiveRecord::Schema.define(version: 2020_12_23_203412) do
     t.uuid "batch_id"
     t.uuid "image_id"
     t.string "url"
+    t.boolean "completed"
     t.datetime "expires"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false

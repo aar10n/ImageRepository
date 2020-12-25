@@ -36,3 +36,5 @@ Lint/RescueException:
   Enabled: false
 Lint/RedundantSafeNavigation:
   Enabled: false
+Layout/SpaceInsideHashLiteralBraces:
+  Enabled: false
