@@ -20,10 +20,13 @@ module Api
 
       key, data = validate_update_params!
       images = ImageServices::UploadMetadata.new(
-        id: params[key].to_s,
+        params[key].to_s,
         data: data,
         is_batch: key == :batch_id
       ).call
+
+      # unwrap the array for the single item case
+      images = images[0] if key == :id
 
       render status: 200, json: images
     end
@@ -60,7 +63,8 @@ module Api
       keys = %i[id batch_id].filter { |s| params.key?(s) }
       raise HttpError, 400 unless keys.length == 1
 
-      data = JSON.parse(request.body.read).symbolize_keys
+      data = symbolize JSON.parse(request.body.read)
+
       if params.key?(:id)
         validate_metadata! data
         [keys[0], [data]]
@@ -72,14 +76,6 @@ module Api
 
     def validate_metadata!(obj)
       valid_metadata = Utils.validator do
-        # only do
-        #   optional do
-        #     key :title, is: String
-        #     key :description, is: String
-        #     key :private, is: union(TrueClass, FalseClass)
-        #     key :tags, is: array(of: String)
-        #   end
-        # end
         optional do
           only do
             key :title, is: String
@@ -89,9 +85,6 @@ module Api
           end
         end
       end
-
-      puts ">> valid metadata?"
-      puts valid_metadata.call(obj)
 
       raise HttpError, 400 unless valid_metadata.call(obj)
     end
@@ -123,6 +116,18 @@ module Api
     def validate_image_array!(obj)
       raise HttpError, 400 unless obj.is_a? Array
       obj.each { |o| validate_image!(o) }
+    end
+
+    # helpers
+
+    def symbolize(obj)
+      if obj.is_a? Array
+        obj.map { |e| symbolize(e) }
+      elsif obj.is_a? Hash
+        obj.symbolize_keys
+      else
+        raise RuntimeError
+      end
     end
   end
 end

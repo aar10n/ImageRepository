@@ -18,7 +18,7 @@ module ImageServices
 
     # Creates new +Image+ and +Upload+ records from the given image data.
     # The images aren't considered uploaded until their metadata has been
-    # provided via a PATCH request to the url returned by this function.
+    # provided via a PUT request to the url returned by this function.
     # @return [String] The location of the image resource(s).
     def call
       batch_id = SecureRandom.uuid

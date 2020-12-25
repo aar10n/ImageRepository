@@ -6,7 +6,7 @@ module ImageServices
     # @param id [String]
     # @param data [Hash]
     # @param is_batch [Boolean]
-    def initialize(id: nil, data: nil, is_batch: nil)
+    def initialize(id, data: {}, is_batch: false)
       @id = id
       @data = data
       @is_batch = is_batch
@@ -19,10 +19,13 @@ module ImageServices
     def call
       uploads = find_uploads
 
-      uploads.zip(@data).map do |upload, data|
-        next if upload.nil?
+      # How can we query for all the images based on the found uploads?
+      d = @data.each
+      uploads.map do |upload|
+        data = d.next
+        upload.completed = false
 
-        image = Image.find_by(id: upload.attributes["image_id"])
+        image = Image.find_by(id: upload.attributes["image_id"], uploaded: false)
         raise HttpError, 404 if image.nil?
 
         if data.key?(:tags)
@@ -47,7 +50,9 @@ module ImageServices
           uploaded: true,
           shortlink: shortlink
         }
+
         image.update(params)
+        upload.destroy
 
         {image.id => shortlink}
       end
@@ -57,13 +62,13 @@ module ImageServices
 
     # Locates all pending upload records that are not expired and
     # match the image id or batch id (depending on what was given).
-    # @return [Array<Upload>] An array of +Upload+ matching the criteria.
+    # @return [ActiveRecord::Relation<Upload>] The +Upload+ relation.
     def find_uploads
       uploads =
         if @is_batch
-          Upload.where(batch_id: @id, completed: false)
+          Upload.where(batch_id: @id)
         else
-          Upload.where(image_id: @id, completed: false).limit(1)
+          Upload.where(image_id: @id).limit(1)
         end
 
       raise HttpError, 404 if uploads.empty?
@@ -73,7 +78,8 @@ module ImageServices
       valid = uploads.select { |r| r.expires > now }
       raise HttpError, 410 unless uploads.length == valid.length
 
-      Array(uploads)
+      uploads
     end
+
   end
 end
