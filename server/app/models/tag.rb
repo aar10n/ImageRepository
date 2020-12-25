@@ -6,8 +6,8 @@ class Tag < ApplicationRecord
   include Elasticsearch::Model
   include Elasticsearch::Model::Callbacks
 
-  belongs_to :image, type: :uuid
+  belongs_to :image
 end
 
-# Tag.__elasticsearch__.create_index!
-# Tag.import
+Tag.__elasticsearch__.create_index!
+Tag.import

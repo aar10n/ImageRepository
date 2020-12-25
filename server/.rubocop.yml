@@ -1,3 +1,5 @@
+Style/AndOr:
+  Enabled: false
 Style/Documentation:
   Enabled: false
 Style/NumericLiterals:
@@ -12,7 +14,13 @@ Style/FrozenStringLiteralComment:
   Enabled: false
 Naming/ConstantName:
   Enabled: false
+Naming/MethodParameterName:
+  Enabled: false
 Metrics/AbcSize:
+  Enabled: false
+Metrics/BlockLength:
+  Enabled: false
+Metrics/ClassLength:
   Enabled: false
 Metrics/CyclomaticComplexity:
   Enabled: false
@@ -21,6 +29,8 @@ Metrics/MethodLength:
 Metrics/PerceivedComplexity:
   Enabled: false
 Layout/EmptyLineAfterGuardClause:
+  Enabled: false
+Layout/SpaceAroundMethodCallOperator:
   Enabled: false
 Lint/RescueException:
   Enabled: false

@@ -8,9 +8,13 @@ module Utils
   class Validator
     attr_accessor :keys, :validators
 
-    def initialize(*_, &block)
+    def initialize(parent = nil, options = {}, &block)
       @validators = []
       @keys = []
+      @options = options
+      @parent = parent
+
+      @options[:optional] ||= false
       instance_eval(&block)
     end
 
@@ -21,17 +25,27 @@ module Utils
     # base conditions
 
     def is(type, optional: false, &block)
-      v = block_given? ? Validator.new(&block).build : wrap(type)
+      v =
+        if block_given?
+          val = Validator.new(self, @options, &block)
+          @keys << val.keys
+          val.build
+        else
+          wrap(type)
+        end
+
       @validators << lambda do |o|
         v.call(o) or optional
       end
     end
 
     def key(key, is: ANY, optional: false, &block)
-      v = block_given? ? Validator.new(&block).build : wrap(is)
+      opt = @options[:optional] || optional
+      v = block_given? ? Validator.new(self, @options, &block).build : wrap(is)
       @keys << key
+      @parent.keys << key unless @parent.nil?
       @validators << lambda do |o|
-        o.is_a? Hash and ((o.key?(key) and v.call(o[key])) or optional)
+        o.is_a? Hash and ((o.key?(key) and v.call(o[key])) or opt)
       end
     end
 
@@ -50,8 +64,8 @@ module Utils
     def none(&block)
       @validators <<
         if block_given?
-          vs = Validator.new(&block).validators
-          ->(obj) { vs.map { |v| v.call(obj) }.none? }
+          val = Validator.new(self, @options, &block)
+          ->(obj) { val.validators.map { |v| v.call(obj) }.none? }
         else
           ANY
         end
@@ -61,8 +75,9 @@ module Utils
     def any(&block)
       @validators <<
         if block_given?
-          vs = Validator.new(&block).validators
-          ->(obj) { vs.map { |v| v.call(obj) }.any? }
+          val = Validator.new(self, @options, &block)
+          @keys << val.keys
+          ->(obj) { val.validators.map { |v| v.call(obj) }.any? }
         else
           ANY
         end
@@ -72,7 +87,9 @@ module Utils
     def one(&block)
       @validators <<
         if block_given?
-          ->(obj) { Validator.new(&block).validators.map { |v| v.call(obj) }.one? }
+          val = Validator.new(self, @options, &block)
+          @keys << val.keys
+          ->(obj) { val.validators.map { |v| v.call(obj) }.one? }
         else
           ANY
         end
@@ -82,8 +99,21 @@ module Utils
     def all(&block)
       @validators <<
         if block_given?
-          vs = Validator.new(&block).validators
-          ->(obj) { vs.map { |v| v.call(obj) }.all? }
+          val = Validator.new(self, @options, &block)
+          @keys << val.keys
+          ->(obj) { val.validators.map { |v| v.call(obj) }.all? }
+        else
+          ANY
+        end
+    end
+
+    # all of the specified keys are optional
+    def optional(&block)
+      @validators <<
+        if block_given?
+          opts = @options.dup
+          opts[:optional] = true
+          Validator.new(self, opts, &block).build
         else
           ANY
         end
@@ -93,10 +123,10 @@ module Utils
     def only(&block)
       @validators <<
         if block_given?
-          val = Validator.new(&block)
+          val = Validator.new(self, @options, &block)
           lambda do |obj|
             obj.is_a? Hash and val.validators.map { |v| v.call(obj) }.all? and
-              obj.keys.map { |k| k.in?(val.keys) }.all?
+              obj.symbolize_keys.keys.map { |k| k.in?(val.keys) }.all?
           end
         else
           ANY
@@ -105,11 +135,16 @@ module Utils
 
     # other matchers
 
-    def array?(of: ANY, &block)
-      v = block_given? ? Validator.new(&block).build : wrap(of)
+    def array(of: ANY)
+      v = wrap(of)
       lambda do |o|
         o.is_a? Array and o.map { |e| v.call(e) }.all?
       end
+    end
+
+    def union(*types)
+      tm = types.map { |t| wrap(t) }
+      ->(o) { tm.map { |t| t.call(o) }.any? }
     end
 
     private

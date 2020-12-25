@@ -6,7 +6,7 @@
 class Upload < ApplicationRecord
   include ActiveModel::Serialization
 
-  def attributes
-    { "url" => nil }
-  end
+  # def attributes
+  #   { "url" => nil }
+  # end
 end

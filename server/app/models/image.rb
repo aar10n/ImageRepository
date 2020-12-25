@@ -6,8 +6,10 @@ class Image < ApplicationRecord
 
   after_initialize :default_values
   def default_values
+    self.title ||= nil
+    self.description ||= nil
     self.private ||= false
     self.uploaded ||= false
-    self.shortlink ||= ""
+    self.shortlink ||= nil
   end
 end

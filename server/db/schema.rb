@@ -21,6 +21,8 @@ ActiveRecord::Schema.define(version: 2020_12_23_203412) do
     t.string "file_name"
     t.integer "file_size"
     t.string "mime_type"
+    t.string "title"
+    t.string "description"
     t.boolean "private"
     t.boolean "uploaded"
     t.string "shortlink"
@@ -30,7 +32,7 @@ ActiveRecord::Schema.define(version: 2020_12_23_203412) do
 
   create_table "tags", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "image_id", null: false
-    t.string "type"
+    t.string "kind"
     t.string "value"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false

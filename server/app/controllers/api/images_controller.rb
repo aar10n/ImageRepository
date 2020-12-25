@@ -1,3 +1,5 @@
+# require "support/utils"
+
 module Api
   class ImagesController < ApplicationController
     # GET /images
@@ -15,10 +17,15 @@ module Api
     # metdata for one or more previously created images.
     def update
       puts "update", params
-      puts JSON.parse(request.body.read)
-      # uploads = Upload.all
-      # puts uploads
-      render status: 200
+
+      key, data = validate_update_params!
+      images = ImageServices::UploadMetadata.new(
+        id: params[key],
+        data: data,
+        batch: key == :batch_id
+      ).call
+
+      render status: 200, json: images
     end
 
     # PATCH /images/:id
@@ -52,21 +59,46 @@ module Api
     def validate_update_params!
       keys = %i[id batch_id].filter { |s| params.key?(s) }
       raise HttpError, 400 unless keys.length == 1
-      if params.key?(:id)
-        validate_metadata! params[:id]
-      elsif params.key?(:batch_id)
-        validate_metadata_array! params[:id]
-      end
 
-      keys[0]
+      data = JSON.parse(request.body.read).symbolize_keys
+      if params.key?(:id)
+        validate_metadata! data
+        [keys[0], [data]]
+      elsif params.key?(:batch_id)
+        validate_metadata_array! data
+        [keys[0], data]
+      end
     end
 
     def validate_metadata!(obj)
+      valid_metadata = Utils.validator do
+        # only do
+        #   optional do
+        #     key :title, is: String
+        #     key :description, is: String
+        #     key :private, is: union(TrueClass, FalseClass)
+        #     key :tags, is: array(of: String)
+        #   end
+        # end
+        optional do
+          only do
+            key :title, is: String
+            key :description, is: String
+            key :private, is: union(TrueClass, FalseClass)
+            key :tags, is: array(of: String)
+          end
+        end
+      end
 
+      puts ">> valid metadata?"
+      puts valid_metadata.call(obj)
+
+      raise HttpError, 400 unless valid_metadata.call(obj)
     end
 
     def validate_metadata_array!(obj)
-
+      raise HttpError, 400 unless obj.is_a? Array
+      obj.each { |o| validate_metadata!(o) }
     end
 
     # create parameter validation

@@ -2,6 +2,7 @@ UPLOAD_TTL = 10 * 60 * 60 # 10 hours
 
 module ImageServices
   class UploadImage
+    # @param files [Array<ActionDispatch::Http::UploadedFile>]
     def initialize(files)
       @expiry_base = Time.now
       @files = files.map do |file|
@@ -22,14 +23,9 @@ module ImageServices
       # into the database.
       uploaded = @files.map do |file|
         image = Image.new(file)
-        puts ">> saving image..."
         image.save!
-        puts ">> image id: #{image.id}"
 
-        puts ">> upload params"
-        puts upload_params(batch_id, image.id)
         upload = Upload.new(upload_params(batch_id, image.id))
-        puts ">> saving upload..."
         upload.save!
 
         image.id
