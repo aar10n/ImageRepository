@@ -1,7 +1,22 @@
-# data/ ignores
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# client
+client/node_modules
+client/coverage
+client/build
+client/npm-debug.log*
+client/yarn-debug.log*
+client/yarn-error.log*
+
+# data
 data/
 
-# server/ ignores
+# server
 server/.bundle
 server/log/*
 server/tmp/*
