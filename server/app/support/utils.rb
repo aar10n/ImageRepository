@@ -1,4 +1,5 @@
 ANY = proc { true }
+NONE = proc { false }
 
 module Utils
   # Creates a new validator from the block.
@@ -21,22 +22,32 @@ module Utils
       @options = options
       @parent = parent
 
+      # default options
       @options[:optional] ||= false
+      @options[:rescue] ||= ANY
+
       instance_eval(&block)
     end
 
     # @return [Proc] The validator function.
     def build
-      ->(obj) { @validators.map { |v| v.call(obj) }.all? }
+      lambda do |obj|
+        @validators.map { |v| v.call(obj) }.all?
+      rescue => e
+        raise e unless @options[:rescue].call(e)
+        false
+      end
     end
 
-    # base conditions
+    #
+    # Core matchers
+    #
 
     # Asserts that the object being validated is some type.
     # @param type [Class] The expected type of the object.
-    # @param optional [Boolean] Whether condition is optional.
-    def is(type, optional: false, &block)
-      v =
+    # @param value [Any] The expected value of the object (optional).
+    def is(type, value: ANY, &block)
+      v1 =
         if block_given?
           val = ValidatorBuilder.new(self, @options, &block)
           @keys << val.keys
@@ -45,9 +56,15 @@ module Utils
           wrap(type)
         end
 
+      v2 = wrap(value, ->(a, b) { a == b })
       @validators << lambda do |o|
-        v.call(o) or optional
+        v1.call(o) and v2.call(o)
       end
+    end
+
+    # Asserts that the object being validated is some value.
+    def value(value)
+      @validators << wrap(value, ->(a, b) { a == b })
     end
 
     # Asserts that the object has the given +key+ as well as
@@ -61,7 +78,7 @@ module Utils
       @keys << key
       @parent.keys << key unless @parent.nil?
       @validators << lambda do |o|
-        o.is_a? Hash and ((o.key?(key) and v.call(o[key])) or opt)
+        o.is_a? Hash and (o.key?(key) ? v.call(o[key]) : opt)
       end
     end
 
@@ -77,9 +94,46 @@ module Utils
       end
     end
 
-    # block types
+    #
+    # Other validators
+    #
 
-    # Inverts the conditions defined in enclosing scope.
+    # Defines the type of the array holding some type. This
+    # is to be used in the type parameter of the +is+ or +key+
+    # functions.
+    # @param of [Class, Proc] The expected contents of the array.
+    def array(of: ANY)
+      v = wrap(of)
+      ->(o) { o.is_a? Array and o.map { |e| v.call(e) }.all? }
+    end
+
+    # Defines a union of types. This is to be used in the type
+    # parameter of the +is+ or +key+ functions and causes any
+    # of the specified types to be matched.
+    # @param types [Array<Class>] The possible types.
+    def union(*types)
+      tm = types.map { |t| wrap(t) }
+      ->(o) { tm.map { |t| t.call(o) }.any? }
+    end
+
+    # Defines a union of values. This is to be used in the value
+    # parameter of the +value+ function and causes any of the
+    # specified values to be matched.
+    # @param values [Array<Any>] The possible values
+    def oneof(*values)
+      if !values.nil?
+        ->(o) { values.map { |l| wrap(l, ->(a, b) { a == b}).call(o) }.all? }
+      else
+        ANY
+      end
+    end
+
+    #
+    # Scope types
+    #
+
+    # Asserts that none of the conditions defined in the
+    # enclosing scope are true.
     def none(&block)
       @validators <<
         if block_given?
@@ -141,7 +195,8 @@ module Utils
         end
     end
 
-    # only the specified keys can be present
+    # Asserts that the only keys present in the hash are the ones
+    # defined in the enclosing scope.
     def only(&block)
       @validators <<
         if block_given?
@@ -155,38 +210,34 @@ module Utils
         end
     end
 
-    # other matchers
+    #
+    # Scope options
+    #
 
-    # Defines the type of the array holding some type. This
-    # is to be used in the type parameter of the +is+ or +key+
-    # functions.
-    # @param of [Class, Proc] The expected contents of the array.
-    def array(of: ANY)
-      v = wrap(of)
-      lambda do |o|
-        o.is_a? Array and o.map { |e| v.call(e) }.all?
-      end
-    end
-
-    # Defines a union of types. This is to be used in the type
-    # parameter of the +is+ or +key+ functions and causes any
-    # of the specified types to be matched.
-    # @param types [Array<Class>] The possible types.
-    def union(*types)
-      tm = types.map { |t| wrap(t) }
-      ->(o) { tm.map { |t| t.call(o) }.any? }
+    # Prevents exceptions caused by procs or blocks from being
+    # rescued. Optionally, an explicit list of exceptions not
+    # to rescue can be provided instead.
+    # @param exceptions [Array<Class>] Exceptions not to rescue (optional).
+    def no_rescue(*exceptions)
+      @options[:rescue] =
+        if !exceptions.nil? and !exceptions.empty?
+          ->(e) { !e.class.in?(exceptions) }
+        else
+          NONE
+        end
     end
 
     private
 
-    def wrap(arg)
+    def wrap(arg, p = nil)
       if arg.is_a? Proc
         arg
+      elsif !p.nil?
+        ->(o) { p.call(arg, o) }
       else
-        lambda do |o|
-          o.is_a? arg
-        end
+        ->(o) { o.is_a? arg }
       end
     end
+
   end
 end

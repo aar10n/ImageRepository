@@ -12,9 +12,13 @@ Style/MutableConstant:
   Enabled: false
 Style/FrozenStringLiteralComment:
   Enabled: false
+Style/RescueStandardError:
+  Enabled: false
 Naming/ConstantName:
   Enabled: false
 Naming/MethodParameterName:
+  Enabled: false
+Naming/PredicateName:
   Enabled: false
 Metrics/AbcSize:
   Enabled: false

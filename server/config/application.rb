@@ -16,6 +16,7 @@ require "action_view/railtie"
 # require "rails/test_unit/railtie"
 
 require_relative "../lib/middleware/error_middleware"
+require_relative "../lib/mixins/string"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.

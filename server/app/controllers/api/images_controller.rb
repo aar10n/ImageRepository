@@ -1,23 +1,40 @@
 # require "support/utils"
 
+
 module Api
   class ImagesController < ApplicationController
-    # GET /images
+    # == GET
+    # Returns a list of images.
+    #
+    # == Query Parameters:
+    #   page - specifies the page of results to return.
+    #   page_size - specifies how many items are returned per page.
     def index
-      puts "index"
+      page, page_size = validate_index_params!
+      images = ImageServices::FetchImages.new(page, page_size).call
+      puts ">> images"
+      puts images
+      render status: 200, json: images
     end
 
-    # GET /images/:id
+    # == GET
+    # Returns a single image.
+    #
+    # == Query Parameters:
+    #   metadata_only - only
     def show
       puts "show", params
     end
 
-    # PUT /images(/:id)
+    # == PATCH
     # Completes an image upload by suppliying the missing
     # metdata for one or more previously created images.
+    #
+    # == Query Parameters:
+    #   batch_id - specifies a batch of images to update.
+    #              an image id cannot also be provided if
+    #              batch_id is given.
     def update
-      puts "update", params
-
       key, data = validate_update_params!
       images = ImageServices::UploadMetadata.new(
         params[key].to_s,
@@ -27,17 +44,16 @@ module Api
 
       # unwrap the array for the single item case
       images = images[0] if key == :id
-
       render status: 200, json: images
     end
 
-    # PATCH /images/:id
-    # Modify the metadata of an image.
+    # == PATCH
+    # Modifies the metadata of an uploaded image.
     def edit
 
     end
 
-    # DELETE /images/:id
+    # == DELETE
     def destroy
       puts "destroy", params
     end
@@ -57,6 +73,25 @@ module Api
     end
 
     private
+
+    #
+    # Validation Methods
+    #
+
+    # index parameter validation
+    def validate_index_params!
+      valid_params = Utils.validator do
+        optional do
+          key :page, is: ->(s) { s.is_i? } # integer string?
+          key :page_size, is: proc { |s| s.is_i? } # integer string?
+        end
+      end
+
+      options = request.query_parameters
+      raise 400 unless  valid_params.call(options)
+
+      [options[:page]&.to_i(10), options[:page_size]&.to_i(10)]
+    end
 
     # update parameter validation
     def validate_update_params!
@@ -121,9 +156,10 @@ module Api
     # helpers
 
     def symbolize(obj)
-      if obj.is_a? Array
+      case obj
+      when Array
         obj.map { |e| symbolize(e) }
-      elsif obj.is_a? Hash
+      when Hash
         obj.symbolize_keys
       else
         raise RuntimeError
