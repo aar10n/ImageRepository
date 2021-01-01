@@ -1,17 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
-import { createStyles, makeStyles } from '@material-ui/core/styles';
-// import GridList from '@material-ui/core/GridList';
-// import GridListTile from '@material-ui/core/GridListTile';
-import classnames from 'classnames';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 
-import { debounce, generateRandomImages } from 'helpers/utils';
-
-enum Orientation {
-  Landscape,
-  Portrait,
-  Square,
-}
-
+import { debounce, generateRandomImages, range } from 'core/utils';
+import { LayoutEngine, Orientation } from 'core/LayoutEngine';
+import { tuple } from 'core/types';
 interface ServerImage {
   url: string;
   width: number;
@@ -25,80 +17,55 @@ interface GalleryImage {
   orientation: Orientation;
 }
 
-const ROW_HEIGHT = 300;
+interface StylesProps {
+  numColumns: number;
+  rowHeight: number;
+  gridGap: number;
+}
 
-const useStyles = makeStyles(() =>
+const useStyles = makeStyles<Theme, StylesProps>(() =>
   createStyles({
-    grid: {
+    grid: props => ({
       display: 'grid',
-      gridTemplateRows: `repeat(auto-fill, minmax(${ROW_HEIGHT}px, 1fr))`,
-      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+      gridTemplateRows: `repeat(auto-fill, ${props.rowHeight}px)`,
+      gridTemplateColumns: `repeat(${props.numColumns}, 1fr)`,
       justifyContent: 'center',
       alignContent: 'start',
-      gridAutoRows: '300px',
-      // gridAutoFlow: 'row',
-      height: ROW_HEIGHT,
-      minHeight: ROW_HEIGHT,
-      maxHeight: ROW_HEIGHT,
-      gap: '8px',
-    },
+      gridAutoRows: props.rowHeight,
+      height: props.rowHeight,
+      minHeight: props.rowHeight,
+      maxHeight: props.rowHeight,
+      gap: props.gridGap,
+    }),
     item: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
+      boxShadow: '2px 2px 2px 0px rgba(100, 100, 100, 0.5)',
       overflow: 'hidden',
       borderRadius: '10px',
-      boxShadow: '2px 2px 2px 0px rgba(100, 100, 100, 0.5)',
-
+      width: '100%',
+      height: '100%',
       '& img': {
-        flexShrink: 0,
-        minWidth: '100%',
-        minHeight: '100%',
-        transform: 'scale(0.5)',
-      },
-
-      '&.portrait-sm': {
-        gridColumn: 'span 1',
-      },
-
-      '&.portrait-md': {
-        gridColumn: 'span 1',
-      },
-
-      '&.landscape-sm': {
-        gridColumn: 'span 1',
-      },
-
-      '&.landscape-md': {
-        gridColumn: 'span 2',
-      },
-
-      '&.landscape-lg': {
-        gridColumn: 'span 3',
+        cursor: 'zoom-in',
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
       },
     },
   })
 );
 
-const getBadness = (orientation: Orientation) => {
-  switch (orientation) {
-    case Orientation.Landscape:
-      return 2;
-    case Orientation.Portrait:
-    case Orientation.Square:
-      return 1;
-  }
-};
+const breakpoints = Object.fromEntries(
+  range(0, 5100, 100).map(value => {
+    if (value <= 400) return tuple(value, 1);
+    return tuple(value, (value - 400) / 100 + 1);
+  })
+);
 
-const getOrientationStr = (orientation: Orientation) => {
-  switch (orientation) {
-    case Orientation.Landscape:
-      return 'landscape';
-    case Orientation.Portrait:
-      return 'portrait';
-    case Orientation.Square:
-      return 'square';
+const getNumColumns = () => {
+  let width = window.innerWidth;
+  if (width % 100 !== 0) {
+    width = Math.round(width / 100) * 100;
   }
+  return breakpoints[width];
 };
 
 const makeGalleryImages = (images: ServerImage[]) =>
@@ -115,81 +82,59 @@ const makeGalleryImages = (images: ServerImage[]) =>
     return { ...image, orientation };
   });
 
-const reflowImages = (images: GalleryImage[], columns: number) => {
-  if (columns === 0) {
-    return [];
-  }
-
-  console.log('reflowing images');
-  let badness = 0;
-  let line: string[] = [];
-  let classNames: string[] = [];
-  for (let image of images) {
-    const { orientation } = image;
-
-    badness += getBadness(orientation);
-    // console.log(`baddness: ${badness}`);
-
-    let className: string;
-    if (orientation === Orientation.Landscape) {
-      if (badness > columns) {
-        className = 'landscape-sm';
-      } else {
-        className = 'landscape-md';
-      }
-    } else {
-      className = 'portrait';
-    }
-
-    line.push(className);
-    if (badness >= columns) {
-      console.log(line.join(' | '));
-      classNames = [...classNames, ...line];
-
-      badness = 0;
-      line = [];
-    }
-  }
-
-  return classNames;
-};
+const getStyles = (span: number): React.CSSProperties => ({
+  gridColumn: `span ${span}`,
+});
 
 export const Gallery = () => {
   const [columns, setColumns] = useState<number>(0);
   const [images, setImages] = useState<GalleryImage[]>([]);
-  const [imageClasses, setImageClasses] = useState<string[]>([]);
+  const [engine, setEngine] = useState<LayoutEngine>();
+  const [spans, setSpans] = useState<number[]>([]);
   const galleryRef = useRef<HTMLDivElement>(null);
-  const classes = useStyles();
+  const classes = useStyles({
+    numColumns: columns,
+    rowHeight: 300,
+    gridGap: 8,
+  });
 
   // runs once on render
   useEffect(() => {
-    const getColumns = () => {
-      console.log('getting columns');
-      if (galleryRef.current !== null) {
-        return window
-          .getComputedStyle(galleryRef.current, null)
-          .getPropertyValue('grid-template-columns')
-          .split(' ').length;
-      }
-      return 0;
-    };
-
     const fetchImages = async () => {
-      const images = makeGalleryImages(await generateRandomImages(9));
+      const images = makeGalleryImages(await generateRandomImages(20));
+      const layoutEngine = new LayoutEngine(images, {
+        portrait: {
+          width: 2,
+          minWidth: 2,
+          maxWidth: 3,
+          shrinkPenalty: 1000,
+          stretchPenalty: 300,
+        },
+        square: {
+          width: 3,
+          minWidth: 3,
+          maxWidth: 4,
+          shrinkPenalty: 500,
+          stretchPenalty: 500,
+        },
+        landscape: {
+          width: 4,
+          minWidth: 3,
+          maxWidth: 6,
+          shrinkPenalty: 200,
+          stretchPenalty: 0,
+        },
+      });
+
+      // @ts-ignore
+      window.engine = layoutEngine;
+
       setImages(images);
-
-      for (let image of images) {
-        const { width, height, orientation } = image;
-        console.log(
-          `image: ${width}x${height} | ${getOrientationStr(orientation)}`
-        );
-      }
-
-      // this must be done after the images have been loaded
-      setColumns(getColumns());
+      setEngine(layoutEngine);
+      setColumns(getNumColumns());
     };
 
-    const resizeListener = debounce(() => setColumns(getColumns), 150);
+    const resizeListener = debounce(() => setColumns(getNumColumns()), 200);
     window.addEventListener('resize', resizeListener);
     fetchImages();
 
@@ -198,22 +143,28 @@ export const Gallery = () => {
     };
   }, []);
 
-  // runs whenever the number of grid columns change
+  // runs whenever the number of grid columns changes
   useEffect(() => {
-    console.log(`grid columns: ${columns}`);
-    setImageClasses(reflowImages(images, columns));
-  }, [columns, images]);
+    if (columns === 0 || !engine) {
+      return;
+    }
+
+    const widths = engine.layout(columns);
+    setSpans(widths);
+  }, [columns, images, engine]);
 
   return (
-    <div ref={galleryRef} className={classes.grid}>
-      {images.map((image, index) => (
-        <div
-          className={classnames(classes.item, imageClasses[index])}
-          key={index}
-        >
-          <img src={image.url} alt="" />
-        </div>
-      ))}
+    <div id="gallery" ref={galleryRef} className={classes.grid}>
+      {columns > 0 &&
+        images.map((image, index) => (
+          <div
+            className={classes.item}
+            style={getStyles(spans[index])}
+            key={index}
+          >
+            <img className={classes.image} src={image.url} alt="" />
+          </div>
+        ))}
     </div>
   );
 };
