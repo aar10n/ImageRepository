@@ -17,14 +17,13 @@ ActiveRecord::Schema.define(version: 2020_12_23_203412) do
   enable_extension "plpgsql"
 
   create_table "images", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.binary "data"
     t.string "file_name"
     t.integer "file_size"
     t.string "mime_type"
     t.string "title"
     t.string "description"
     t.boolean "private"
-    t.boolean "uploaded"
+    t.boolean "published"
     t.string "shortlink"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
@@ -42,6 +41,7 @@ ActiveRecord::Schema.define(version: 2020_12_23_203412) do
   create_table "uploads", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "batch_id"
     t.uuid "image_id"
+    t.binary "data"
     t.string "url"
     t.boolean "completed"
     t.datetime "expires"

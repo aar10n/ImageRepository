@@ -11,7 +11,7 @@ class Image < ApplicationRecord
     self.title ||= nil
     self.description ||= nil
     self.private ||= false
-    self.uploaded ||= false
+    self.published ||= false
     self.shortlink ||= nil
   end
 

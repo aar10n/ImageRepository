@@ -1,7 +1,7 @@
 UPLOAD_TTL = 10 * 60 * 60 # 10 hours
 
 module ImageServices
-  class UploadImage
+  class UploadImages
 
     # @param files [Array<ActionDispatch::Http::UploadedFile>]
     def initialize(files)
@@ -16,9 +16,9 @@ module ImageServices
       end
     end
 
-    # Creates new +Image+ and +Upload+ records from the given image data.
-    # The images aren't considered uploaded until their metadata has been
-    # provided via a PUT request to the url returned by this function.
+    # Creates new +Image+ and +Upload+ records from the given image file.
+    # Until the upload process is completed by a second PUT request to the
+    # returned url, the image isn't considered uploaded and cannot be accessed.
     # @return [String] The location of the image resource(s).
     def call
       batch_id = SecureRandom.uuid
@@ -27,12 +27,11 @@ module ImageServices
       # Image and Upload instance, and save them
       # into the database.
       uploaded = @files.map do |file|
-        image = Image.new(file)
+        image = Image.new(file.reject { |key| key == :data})
         image.save!
 
-        upload = Upload.new(upload_params(batch_id, image.id))
+        upload = Upload.new(upload_params(batch_id, image.id, file[:data]))
         upload.save!
-
         image.id
       end
 
@@ -52,11 +51,13 @@ module ImageServices
 
     # @param batch_id [String]
     # @param image_id [String]
+    # @param data [String]
     # @return [Hash{Symbol => String, Time}]
-    def upload_params(batch_id, image_id)
+    def upload_params(batch_id, image_id, data)
       {
         batch_id: batch_id,
         image_id: image_id,
+        data: data,
         url: "/api/images/#{image_id}",
         expires: @expiry_base + UPLOAD_TTL
       }

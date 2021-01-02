@@ -4,32 +4,33 @@ module ImageServices
   class UploadMetadata
 
     # @param id [String]
-    # @param data [Hash]
+    # @param metadata [Hash]
     # @param is_batch [Boolean]
-    def initialize(id, data: {}, is_batch: false)
+    def initialize(id, metadata: {}, is_batch: false)
       @id = id
-      @data = data
+      @metadata = metadata
       @is_batch = is_batch
     end
 
     # Updates the +Image+ records with the provided metadata, and sets
-    # their status to published. All previous +Upload+ records are
-    # invalidated.
+    # their status to published. This also saves an uploaded images data
+    # onto disk at the path given by the +IMAGES_DIR+ environment variable.
+    # Finally, all previous +Upload+ records are invalidated.
     # @return [Array] An array of image_id => image url objects
     def call
       uploads = find_uploads
 
       # How can we query for all the images based on the found uploads?
-      d = @data.each
+      d = @metadata.each
       uploads.map do |upload|
-        data = d.next
+        metadata = d.next
         upload.completed = false
 
-        image = Image.find_by(id: upload.attributes["image_id"], uploaded: false)
+        image = Image.find_by(id: upload.attributes["image_id"], published: false)
         raise HttpError, 404 if image.nil?
 
-        if data.key?(:tags)
-          data[:tags].each do |value|
+        if metadata.key?(:tags)
+          metadata[:tags].each do |value|
             params = {
               image_id: image.id,
               kind: "user",
@@ -44,17 +45,19 @@ module ImageServices
         shortlink = SecureRandom.alphanumeric(SHORTLINK_LENGTH)
 
         params = {
-          title: data.fetch(:title, nil),
-          description: data.fetch(:description, nil),
-          private: data.fetch(:private, false),
-          uploaded: true,
+          title: metadata.fetch(:title, nil),
+          description: metadata.fetch(:description, nil),
+          private: metadata.fetch(:private, false),
+          published: true,
           shortlink: shortlink
         }
 
         image.update(params)
+        # save image to file
+        name = ImageServices::SaveImage.new(image, upload).call
         upload.destroy
 
-        {image.id => shortlink}
+        {image.id => name}
       end
     end
 

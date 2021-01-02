@@ -1,5 +1,6 @@
 # require "support/utils"
 
+ALLOWED_MIME_TYPES = %w[image/gif image/jpeg image/png image/webp]
 
 module Api
   class ImagesController < ApplicationController
@@ -14,6 +15,7 @@ module Api
       images = ImageServices::FetchImages.new(page, page_size).call
       puts ">> images"
       puts images
+
       render status: 200, json: images
     end
 
@@ -26,7 +28,7 @@ module Api
       puts "show", params
     end
 
-    # == PATCH
+    # == PUT
     # Completes an image upload by suppliying the missing
     # metdata for one or more previously created images.
     #
@@ -38,7 +40,7 @@ module Api
       key, data = validate_update_params!
       images = ImageServices::UploadMetadata.new(
         params[key].to_s,
-        data: data,
+        metadata: data,
         is_batch: key == :batch_id
       ).call
 
@@ -58,7 +60,7 @@ module Api
       puts "destroy", params
     end
 
-    # POST /images
+    # == POST
     # Create a new image resource from the given image(s).
     # This is the first phase of the upload process and it
     # returns a url to which a PUT request will fill in the
@@ -67,7 +69,7 @@ module Api
       puts "create", params
 
       files = validate_create_params!
-      url = ImageServices::UploadImage.new(files).call
+      url = ImageServices::UploadImages.new(files).call
       response.location = url
       render status: 201, json: { url: url }
     end
@@ -145,7 +147,7 @@ module Api
 
     def validate_image!(obj)
       raise HttpError, 400 unless obj.is_a? ActionDispatch::Http::UploadedFile
-      raise HttpError, 415 unless obj.content_type.split("/")[0] == "image"
+      raise HttpError, 415 unless obj.content_type.in? ALLOWED_MIME_TYPES
     end
 
     def validate_image_array!(obj)
