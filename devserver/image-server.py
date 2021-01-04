@@ -18,7 +18,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
     self.directory = os.fspath(directory)
     self.files = os.listdir(self.directory)
     super().__init__(*args, **kwargs)
-    
+
   def do_GET(self) -> None:
     self.parse_query_params()
     if self.path == '/':
@@ -37,7 +37,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         rseed = self.params['seed']
       else:
         rseed = seed()
-      
+
       print('seed =', rseed)
       random.seed(rseed)
 
@@ -84,8 +84,8 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
 if __name__ == '__main__':
   if len(sys.argv) >= 2:
     os.chdir(sys.argv[1])
-  
-  server_address = ('localhost', 8000)
+
+  server_address = ('localhost', 1234)
   httpd = http.server.HTTPServer(server_address, RequestHandler)
   print(f'Serving on port {server_address[1]}')
   httpd.serve_forever()

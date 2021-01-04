@@ -35,13 +35,8 @@ module Server
     config.middleware.use ErrorMiddleware
 
     config.after_initialize do
-      ENV["DATA_DIR"] = File.expand_path(ENV["DATA_DIR"], __dir__)
-      ENV["IMAGES_DIR"] = File.join(ENV["DATA_DIR"], "/images")
-
-      puts ENV["DATA_DIR"]
-      puts ENV["IMAGES_DIR"]
-
-      FileUtils.mkdir_p(ENV["IMAGES_DIR"]) unless File.directory?(ENV["IMAGES_DIR"])
+      $image_dir = File.expand_path(ENV["IMAGE_DIR"], __dir__)
+      FileUtils.mkdir_p($image_dir) unless File.directory?($image_dir)
     end
   end
 end

@@ -1,12 +1,19 @@
-version: '3.0'
+version: "3.0"
 services:
+  nginx:
+    image: library/nginx:1.19
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx:/etc/nginx
+      - ./data:/data
   postgres:
     image: library/postgres:13.0
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     ports:
-      - "127.0.0.1:5432:5432"
+      - "5432:5432"
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
 
@@ -16,7 +23,7 @@ services:
       - xpack.security.enabled=false
       - discovery.type=single-node
     ports:
-      - "127.0.0.1:9200:9200"
-      - "127.0.0.1:9300:9300"
+      - "9200:9200"
+      - "9300:9300"
     volumes:
       - ./data/esdata:/usr/share/elasticsearch/data

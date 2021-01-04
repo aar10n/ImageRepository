@@ -1,7 +1,7 @@
 # Load the Rails application.
 require_relative "application"
 
-ENV["DATA_DIR"] = "../../data"
+ENV["IMAGE_DIR"] = "../../data/images"
 
 # Initialize the Rails application.
 Rails.application.initialize!

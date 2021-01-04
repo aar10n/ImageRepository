@@ -14,7 +14,7 @@ module ImageServices
     # @return [String] The name of the saved image.
     def call
       name = @image.shortlink + File.extname(@image.file_name)
-      path = File.join(ENV["IMAGES_DIR"], name)
+      path = File.join($image_dir, name)
       file = File.new(path, "wb")
       file.write(@upload.data)
 

@@ -11,12 +11,13 @@ module Api
     #   page - specifies the page of results to return.
     #   page_size - specifies how many items are returned per page.
     def index
-      page, page_size = validate_index_params!
-      images = ImageServices::FetchImages.new(page, page_size).call
-      puts ">> images"
-      puts images
-
-      render status: 200, json: images
+      render status: 200
+      # page, page_size = validate_index_params!
+      # images = ImageServices::FetchImages.new(page, page_size).call
+      # puts ">> images"
+      # puts images
+      #
+      # render status: 200, json: images
     end
 
     # == GET
