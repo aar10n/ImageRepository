@@ -23,3 +23,8 @@ server/log/*
 server/tmp/*
 server/.byebug_history
 server/config/master.key
+
+# tagger
+tagger/models
+tagger/*.pt
+tagger/__pycache__/
