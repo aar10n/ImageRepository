@@ -15,7 +15,7 @@ SRGB_to_XYZ = [
 
 XYZ_TO_SRGB = [
   [+3.24096994, -1.53738318, -0.49861076],
-  [-0.96924364, +1.8759675,  +0.04155506],
+  [-0.96924364, +1.8759675, +0.04155506],
   [+0.05563008, -0.20397696, +1.05697151]
 ]
 
@@ -78,9 +78,9 @@ class Color:
     c = math.sqrt((a ** 2) + (b ** 2))
     h = math.atan2(b, a)
     if h < 0:
-      h += (2 * math.pi)
+      h += math.radians(360)
 
-    h = h * (180 / math.pi)
+    h = math.degrees(h)
     return l, c, h
 
   def to_rgb(self) -> Tuple[int, int, int]:
@@ -97,14 +97,14 @@ class Color:
     return self._x, self._y, self._z
 
 
-# Color Factory Functions
+# Color Conversion Functions
 
 def from_hex(s: str) -> Color:
   if s.startswith('#'):
     s = s[1:]
 
   assert len(s) == 6
-  vals = [int(s[i:i+2], 16) for i in range(0, len(s), 2)]
+  vals = [int(s[i:i + 2], 16) for i in range(0, len(s), 2)]
   return from_rgb(*vals)
 
 
@@ -120,3 +120,16 @@ def from_rgb(r: int, g: int, b: int) -> Color:
   c = np.asarray([[srgb_to_linear(v / 255)] for v in c])
   result = np.matmul(SRGB_to_XYZ, c).reshape(3)
   return Color(*result)
+
+
+# Other Color Functions
+
+def CIE76(a: Color, b: Color):
+  """
+  CIE 1976 Color Difference.
+  Calculates the perceived difference between two colors
+  using their Lab color representations.
+  """
+  L1, a1, b1 = a.to_lab()
+  L2, a2, b2 = b.to_lab()
+  return math.sqrt(pow(L2 - L1, 2) + pow(a2 - a1, 2) + pow(b2 - b1, 2))
