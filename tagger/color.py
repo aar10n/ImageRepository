@@ -1,6 +1,7 @@
 from typing import Tuple, cast, Any, Union, Iterable
 from collections.abc import Iterable as IterableClass
 import numpy as np
+import math
 
 Range = Tuple[float, float]
 
@@ -38,8 +39,8 @@ def convert_range(val: Union[float, Iterable[float]], src: Range, dest: Range) -
 
 class Color:
   """
-  Represents an RGB color in common CIE XYZ form. Enables the
-  conversion between color models and forms in the sRGB space.
+  Represents a CIE XYZ color and enables the conversion to
+  other color models such as rgb, hex and lab.
   """
   _x: float
   _y: float
@@ -72,6 +73,16 @@ class Color:
     b = 200 * (f(y / yr) - f(z / zr))
     return l, a, b
 
+  def to_lch(self) -> Tuple[float, float, float]:
+    l, a, b = self.to_lab()
+    c = math.sqrt((a ** 2) + (b ** 2))
+    h = math.atan2(b, a)
+    if h < 0:
+      h += (2 * math.pi)
+
+    h = h * (180 / math.pi)
+    return l, c, h
+
   def to_rgb(self) -> Tuple[int, int, int]:
     def linear_to_srgb(u: float) -> float:
       if u <= 0.0031308:
@@ -94,13 +105,10 @@ def from_hex(s: str) -> Color:
 
   assert len(s) == 6
   vals = [int(s[i:i+2], 16) for i in range(0, len(s), 2)]
-  print(vals)
   return from_rgb(*vals)
 
 
 def from_rgb(r: int, g: int, b: int) -> Color:
-  print(f'from_rgb({r}, {g}, {b})')
-
   def srgb_to_linear(u: float) -> float:
     if u <= 0.04045:
       return u / 12.92
