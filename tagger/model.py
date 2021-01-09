@@ -1,6 +1,46 @@
 from typing import Any
+from dataclasses import dataclass
+from common import Label
+from enum import Enum
+from box import Box
 import torch
 
+
+#
+# Model Output Objects
+#
+
+
+class ResultType(Enum):
+  BOX = 0
+  NET = 1
+
+
+@dataclass
+class NetResult:
+  """
+  Represents the output of a neural net.
+  """
+  # the object class code
+  cls: int
+  # the prediction confidence
+  conf: float
+  # the associated label
+  label: Label
+
+
+@dataclass
+class BoxResult(NetResult):
+  """
+  Represents the output of a neural net with a bounding box.
+  """
+  # the object bounding box
+  bbox: Box
+
+
+#
+# Model Loading
+#
 
 def load_yolo() -> Any:
   model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)

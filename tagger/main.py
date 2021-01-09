@@ -25,12 +25,11 @@ class RequestHandler(tornado.web.RequestHandler):
     print(im.shape)
 
     # start = timer()
-    # im.dominant_color()
+    im.dominant_color()
     # end = timer()
     # print(f'Took {end - start} seconds')
 
-    results = predict.run_predict(im.data)
-    analyze.run_analyze(im.data, results)
+    analyze.run_analyze(im)
 
     self.set_status(200)
 

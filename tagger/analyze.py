@@ -1,16 +1,27 @@
-from typing import List
-
+from typing import List, Tuple
 import numpy as np
-from predict import PredictResult
+from model import ResultType
+from image import Image
+from predict import run_predict, BoxResults, NetResults
 
 
-def run_analyze(img: np.ndarray, pred: List[PredictResult]):
+def analyze_box_results(results: BoxResults):
+  pass
+
+
+def analyze_net_results(results: NetResults):
+  pass
+
+
+def run_analyze(img: Image):
   """
-  Analyzes the given image and reutrns a number of tags describing
-  image features, colors and more.
+  Analyzes and returns information on the given image.
 
   :param img:
-  :param pred:
   :return:
   """
-  print(pred)
+  result_type, results = run_predict(img.data)
+  if result_type == ResultType.BOX:
+    analyze_box_results(results)
+  elif result_type == ResultType.NET:
+    analyze_net_results(results)

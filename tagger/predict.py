@@ -4,16 +4,17 @@ import numpy as np
 import torch.nn.functional as nnf
 from torchvision.transforms import transforms
 from timeit import default_timer as timer
-from common import CustomThread, BoxResult, NetResult
-from model import yolo, mobilenet, shufflenet
+from common import CustomThread
+from model import yolo, mobilenet, shufflenet, ResultType, BoxResult, NetResult
 from PIL import Image
 from box import Box
 
 from imagenet import imagenet_labels
 from coco import coco_labels
 
-
-PredictResult = Union[Tuple[BoxResult, NetResult], List[NetResult]]
+BoxResults = List[Tuple[BoxResult, NetResult]]
+NetResults = List[Tuple[NetResult, NetResult]]
+PredictResults = Tuple[ResultType, Union[BoxResults, NetResults]]
 
 
 def make_coco_predictor(model: Any, name: str):
@@ -31,7 +32,7 @@ def make_coco_predictor(model: Any, name: str):
     for i, (*box, conf, cls) in enumerate(output.pred[0]):
       cls = int(cls.item())
       bbox = Box(list(map(lambda t: t.item(), box)))
-      results += [BoxResult(bbox, cls, conf.item(), coco_labels[cls])]
+      results += [BoxResult(cls, conf.item(), coco_labels[cls], bbox)]
 
     return results
   return yolo_predict
@@ -72,15 +73,15 @@ mobilenet_predictor = make_imagenet_predictor(mobilenet, 'Mobilenet')
 shufflenet_predictor = make_imagenet_predictor(shufflenet, 'Shufflenet')
 
 
-def run_broad_pass(img: Image.Image) -> Tuple[NetResult, NetResult]:
+def run_broad_pass(img: Image.Image) -> NetResults:
   t1 = CustomThread(target=mobilenet_predictor, args=(img, 2))
   t2 = CustomThread(target=shufflenet_predictor, args=(img, 2))
   t1.start()
   t2.start()
-  return t1.join(), t2.join()
+  return list(zip(t1.join(), t2.join()))
 
 
-def run_predict(img: np.ndarray) -> List[PredictResult]:
+def run_predict(img: np.ndarray) -> PredictResults:
   """
   Runs the given image through a series of neural nets and generates
   predictions about features in the image. The results may or may not
@@ -114,16 +115,18 @@ def run_predict(img: np.ndarray) -> List[PredictResult]:
       threads += [t]
 
     outputs = [t.join() for t in threads]
+    result_type = ResultType.BOX
     results = list(zip(results, outputs))
   else:
     # if no targets were found run both mobilenet and shufflenet
     # on the entire image to hopefully catch any large features.
     # we run on both nets here to improve regognition chance and
     # so we can cross-reference the results for increased accuracy
+    result_type = ResultType.NET
     results = [run_broad_pass(img)]
 
   # -------------
   end = timer()
 
   print(f'Inference took {end - start} seconds')
-  return results
+  return result_type, results

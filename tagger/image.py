@@ -1,7 +1,6 @@
 #
 # Image related functions
 #
-from typing import Optional, Awaitable, TypedDict
 import numpy as np
 import cv2
 

@@ -1,22 +1,20 @@
 from __future__ import annotations
+from abc import ABC, abstractmethod
 from typing import Any, Iterable, Tuple, List
 from dataclasses import dataclass, is_dataclass, asdict
-from zope.interface import Interface, implements, verify
 from enum import Enum
 from threading import Thread
-from box import Box
 import json
-import inspect
 
 
 #
 # Common Interfaces
 #
 
-
-class JSONSerializable(Interface):
+class Serializable(ABC):
+  @abstractmethod
   def as_json(self) -> dict:
-    pass
+    ...
 
 
 #
@@ -53,9 +51,7 @@ class CustomJSONEncoder(json.JSONEncoder):
   serialize data classes into json automatically.
   """
   def default(self, o: Any) -> Any:
-    if inspect.isclass(o) and verify.verifyClass(JSONSerializable, o):
-      return o.as_json()
-    if isinstance(o, object) and verify.verifyObject(JSONSerializable, o):
+    if isinstance(o, Serializable):
       return o.as_json()
     if is_dataclass(o):
       return asdict(o)
@@ -90,36 +86,6 @@ class Label:
   alt: Tuple[str, ...] = ()
   # keywords related to the label
   related: Tuple[str, ...] = ()
-
-
-@dataclass
-class BoxResult:
-  """
-  Represents the output of a neural net with bounding boxes.
-  """
-
-  # the object bounding box
-  bbox: Box
-  # the object class code
-  cls: int
-  # the prediction confidence
-  conf: float
-  # the associated label
-  label: Label
-
-
-@dataclass
-class NetResult:
-  """
-  Represents the output of a neural net.
-  """
-
-  # the object class code
-  cls: int
-  # the prediction confidence
-  conf: float
-  # the associated label
-  label: Label
 
 
 @dataclass
