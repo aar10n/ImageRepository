@@ -4,7 +4,7 @@ import numpy as np
 import torch.nn.functional as nnf
 from torchvision.transforms import transforms
 from timeit import default_timer as timer
-from types import CustomThread, BoxResult, NetResult
+from common import CustomThread, BoxResult, NetResult
 from model import yolo, mobilenet, shufflenet
 from PIL import Image
 from box import Box
@@ -124,9 +124,6 @@ def run_predict(img: np.ndarray) -> List[PredictResult]:
 
   # -------------
   end = timer()
-
-  for pair in results:
-    print(pair)
 
   print(f'Inference took {end - start} seconds')
   return results

@@ -2,7 +2,7 @@
 Custom hand-annotated labels for the imagenet dataset
 http://www.image-net.org/
 """
-from types import Label
+from common import Label
 
 imagenet_labels = [
   Label(('animal', 'fish', 'tench')),

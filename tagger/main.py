@@ -4,8 +4,8 @@ import tornado.web
 import os
 from image import Image
 from timeit import default_timer as timer
-# import predict
-from color import Colors, from_hex
+import analyze
+import predict
 
 IMAGE_DIR = os.path.abspath('../data/tmp')
 MIME_TYPES = ["image/gif", "image/jpeg", "image/png", "image/webp"]
@@ -29,9 +29,8 @@ class RequestHandler(tornado.web.RequestHandler):
     # end = timer()
     # print(f'Took {end - start} seconds')
 
-    # predict.run_predict(im.data)
-
-    print(Colors.find_closest(from_hex('#054F4B')))
+    results = predict.run_predict(im.data)
+    analyze.run_analyze(im.data, results)
 
     self.set_status(200)
 

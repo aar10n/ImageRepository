@@ -13,3 +13,4 @@ def run_analyze(img: np.ndarray, pred: List[PredictResult]):
   :param pred:
   :return:
   """
+  print(pred)

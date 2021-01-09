@@ -2,7 +2,7 @@
 Custom hand-annotated labels for the COCO2017 dataset
 https://cocodataset.org
 """
-from types import Label
+from common import Label
 
 coco_labels = [
   Label(('person', 'person')),
