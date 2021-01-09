@@ -5,11 +5,7 @@ from image import Image
 from predict import run_predict, BoxResults, NetResults
 
 
-def analyze_box_results(results: BoxResults):
-  pass
-
-
-def analyze_net_results(results: NetResults):
+def analyze_results(results: NetResults):
   pass
 
 
@@ -21,7 +17,4 @@ def run_analyze(img: Image):
   :return:
   """
   result_type, results = run_predict(img.data)
-  if result_type == ResultType.BOX:
-    analyze_box_results(results)
-  elif result_type == ResultType.NET:
-    analyze_net_results(results)
+  analyze_results(results)

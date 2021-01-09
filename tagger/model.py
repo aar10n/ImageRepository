@@ -1,6 +1,6 @@
 from typing import Any
 from dataclasses import dataclass
-from common import Label
+from dataset import Label
 from enum import Enum
 from box import Box
 import torch
@@ -21,12 +21,10 @@ class NetResult:
   """
   Represents the output of a neural net.
   """
-  # the object class code
-  cls: int
+  # the predicted label
+  label: Label
   # the prediction confidence
   conf: float
-  # the associated label
-  label: Label
 
 
 @dataclass

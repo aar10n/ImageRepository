@@ -2,9 +2,9 @@
 Custom hand-annotated labels for the COCO2017 dataset
 https://cocodataset.org
 """
-from common import Label
+from dataset import Label, Dataset
 
-coco_labels = [
+__coco_labels = [
   Label(('person', 'person')),
   Label(('vehicle', 'bicycle'), alt=('bike',)),
   Label(('vehicle', 'car')),
@@ -20,26 +20,26 @@ coco_labels = [
   Label(('object', 'parking meter'), related=('street',)),
   Label(('object', 'bench')),
   Label(('animal', 'bird')),
-  Label(('animal', 'cat'), related=('pet',)),
-  Label(('animal', 'dog'), related=('pet',)),
-  Label(('animal', 'horse')),
-  Label(('animal', 'sheep')),
-  Label(('animal', 'cow')),
-  Label(('animal', 'elephant')),
-  Label(('animal', 'bear')),
-  Label(('animal', 'zebra')),
-  Label(('animal', 'giraffe')),
+  Label(('animal', 'mammal', 'cat'), related=('pet',)),
+  Label(('animal', 'mammal', 'dog'), related=('pet',)),
+  Label(('animal', 'mammal', 'horse')),
+  Label(('animal', 'mammal', 'sheep')),
+  Label(('animal', 'mammal', 'cow')),
+  Label(('animal', 'mammal', 'elephant')),
+  Label(('animal', 'mammal', 'bear')),
+  Label(('animal', 'mammal', 'zebra')),
+  Label(('animal', 'mammal', 'giraffe')),
   Label(('object', 'clothing', 'hat')),
-  Label(('object', 'container', 'backpack')),
+  Label(('object', 'backpack')),
   Label(('object', 'umbrella')),
   Label(('object', 'clothing', 'shoe')),
   Label(('object', 'clothing', 'glasses', 'eye glasses')),
-  Label(('object', 'container', 'bag', 'handbag')),
+  Label(('object', 'bag', 'handbag')),
   Label(('object', 'clothing', 'tie')),
-  Label(('object', 'container', 'suitcase')),
+  Label(('object', 'suitcase')),
   Label(('object', 'sports', 'frisbee')),
   Label(('object', 'sports', 'skis')),
-  Label(('object', 'sports', 'snowboard')),
+  Label(('object', 'sports', 'snowboard'), related=('winter', 'skis')),
   Label(('object' 'sports', 'ball')),
   Label(('object', 'sports', 'kite')),
   Label(('object', 'sports', 'baseball bat')),
@@ -96,3 +96,6 @@ coco_labels = [
   Label(('object', 'toothbrush')),
   Label(('object', 'hair brush')),
 ]
+
+Coco = Dataset('COCO 2017')
+Coco.register(__coco_labels)

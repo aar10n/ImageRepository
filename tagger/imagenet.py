@@ -2,9 +2,9 @@
 Custom hand-annotated labels for the imagenet dataset
 http://www.image-net.org/
 """
-from common import Label
+from dataset import Label, Dataset
 
-imagenet_labels = [
+__imagenet_labels = [
   Label(('animal', 'fish', 'tench')),
   Label(('animal', 'fish', 'goldfish')),
   Label(('animal', 'fish', 'shark', 'great white shark'), alt=('great white',)),
@@ -752,7 +752,7 @@ imagenet_labels = [
   Label(('object', 'weapon', 'projectile')),
   Label(('object', 'technology', 'projector'), related=('theatre', 'movie')),
   Label(('object', 'sports', 'hockey puck'), related=('winter',)),
-  Label(('object', 'decoration', 'punching bag')),
+  Label(('object', 'punching bag')),
   Label(('object', 'clothing', 'accessory', 'purse')),
   Label(('object', 'stationary', 'quill')),
   Label(('object', 'quilt'), related=('bed', 'bedroom',)),
@@ -929,7 +929,7 @@ imagenet_labels = [
   Label(('object', 'clothing', 'jacket', 'dust jacket')),
   Label(('object', 'menu'), related=('restaurant',)),
   Label(('object', 'dish', 'plate')),
-  Label(('food', 'dip', 'guacamole')),
+  Label(('food', 'guacamole')),
   Label(('food', 'soup', 'consomme')),
   Label(('food', 'soup', 'hot pot')),
   Label(('food', 'dessert', 'trifle')),
@@ -1006,3 +1006,11 @@ imagenet_labels = [
   Label(('plant', 'corn', 'ear'), alt=('corn ear',), related=('corn',)),
   Label(('object', 'toilet paper'), related=('toilet', 'bathroom')),
 ]
+
+
+Imagenet = Dataset('Imagenet')
+Imagenet.relate('fish', 'water')
+Imagenet.relate('mollusk', 'water')
+Imagenet.relate('dog', 'pet')
+Imagenet.relate('cat', 'pet')
+Imagenet.register(__imagenet_labels)

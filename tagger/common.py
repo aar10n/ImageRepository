@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Any, Iterable, Tuple, List
+from typing import Any, Union
 from dataclasses import dataclass, is_dataclass, asdict
 from enum import Enum
 from threading import Thread
@@ -13,7 +13,7 @@ import json
 
 class Serializable(ABC):
   @abstractmethod
-  def as_json(self) -> dict:
+  def as_json(self) -> Union[dict, list]:
     ...
 
 
@@ -55,7 +55,7 @@ class CustomJSONEncoder(json.JSONEncoder):
       return o.as_json()
     if is_dataclass(o):
       return asdict(o)
-    return super().default(o)
+    return json.JSONEncoder.default(self, o).default(o)
 
 
 #
@@ -72,21 +72,6 @@ class TagType(Enum):
 #
 # Data Classes
 #
-
-
-@dataclass
-class Label:
-  """
-  Represents a label in a dataset.
-  """
-
-  # the label name and hierarchy
-  classes: Tuple[str, ...]
-  # alternative words for the label
-  alt: Tuple[str, ...] = ()
-  # keywords related to the label
-  related: Tuple[str, ...] = ()
-
 
 @dataclass
 class Tag:

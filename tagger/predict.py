@@ -9,8 +9,8 @@ from model import yolo, mobilenet, shufflenet, ResultType, BoxResult, NetResult
 from PIL import Image
 from box import Box
 
-from imagenet import imagenet_labels
-from coco import coco_labels
+from imagenet import Imagenet
+from coco import Coco
 
 BoxResults = List[Tuple[BoxResult, NetResult]]
 NetResults = List[Tuple[NetResult, NetResult]]
@@ -30,9 +30,8 @@ def make_coco_predictor(model: Any, name: str):
 
     results = []
     for i, (*box, conf, cls) in enumerate(output.pred[0]):
-      cls = int(cls.item())
       bbox = Box(list(map(lambda t: t.item(), box)))
-      results += [BoxResult(cls, conf.item(), coco_labels[cls], bbox)]
+      results += [BoxResult(Coco[int(cls.item())], conf.item(), bbox)]
 
     return results
   return yolo_predict
@@ -54,8 +53,7 @@ def make_imagenet_predictor(model: Any, name: str):
     results = []
     values, classes = torch.topk(nnf.softmax(output[0], dim=0), k)
     for conf, cls in zip(values, classes):
-      cls = int(cls.item())
-      results += [NetResult(cls, conf.item(), imagenet_labels[cls])]
+      results += [NetResult(Imagenet[int(cls.item())], conf.item())]
 
     return results
   return imagenet_predict
