@@ -139,6 +139,7 @@ def CIE00(x: Color, y: Color) -> float:
   """
   CIE 2000 Color Difference Algorithm.
   Calculates the human perceived difference between two colors.
+  http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
   """
   def rad(d):
     return radians(d)

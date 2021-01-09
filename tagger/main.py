@@ -1,16 +1,11 @@
 from typing import Optional, Awaitable
 import tornado.ioloop
 import tornado.web
-import numpy as np
-import cv2
 import os
-import image
-from timeit import default_timer as timer
 from image import Image
-# import recog
-# import tf
-# import hub
-import trch
+from timeit import default_timer as timer
+# import predict
+from color import Colors, from_hex
 
 IMAGE_DIR = os.path.abspath('../data/tmp')
 MIME_TYPES = ["image/gif", "image/jpeg", "image/png", "image/webp"]
@@ -29,12 +24,14 @@ class RequestHandler(tornado.web.RequestHandler):
       return
     print(im.shape)
 
-    start = timer()
-    im.dominant_color()
-    end = timer()
-    print(f'Took {end - start} seconds')
+    # start = timer()
+    # im.dominant_color()
+    # end = timer()
+    # print(f'Took {end - start} seconds')
 
-    trch.run_recog(im.data)
+    # predict.run_predict(im.data)
+
+    print(Colors.find_closest(from_hex('#054F4B')))
 
     self.set_status(200)
 

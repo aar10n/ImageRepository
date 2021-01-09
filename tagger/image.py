@@ -3,7 +3,6 @@
 #
 from typing import Optional, Awaitable, TypedDict
 import numpy as np
-import numexpr as ne
 import cv2
 
 
