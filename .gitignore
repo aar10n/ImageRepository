@@ -26,4 +26,4 @@ server/config/master.key
 
 # tagger
 tagger/*.pt
-tagger/__pycache__/
+__pycache__/
