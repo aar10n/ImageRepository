@@ -1,6 +1,6 @@
 from typing import Any
 from dataclasses import dataclass
-from dataset import Label
+from model.dataset import Label
 from enum import Enum
 from box import Box
 import torch
