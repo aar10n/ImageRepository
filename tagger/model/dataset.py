@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, Tuple, List, Any
+from common.utils import intersection, union
 
 
 @dataclass
@@ -60,17 +61,27 @@ class Label:
         break
     return words
 
-  def relates(self, to: Label) -> bool:
+  def intersection(self, label: Label) -> Label:
+    classes = tuple(intersection(self.classes, label.classes))
+    alt = tuple(intersection(self.alt, label.alt))
+    related = tuple(intersection(self.related, label.related))
+    return Label(classes, alt=alt, related=related, dataset=self.dataset, cls=self.cls)
+
+  def union(self, label: Label) -> Label:
+    classes = tuple(union(self.classes, label.classes))
+    alt = tuple(union(self.alt, label.alt))
+    related = tuple(union(self.related, label.related))
+    return Label(classes, alt=alt, related=related, dataset=self.dataset, cls=self.cls)
+
+  def is_related(self, label: Label) -> bool:
     for related in self.related:
-      if related in to.classes:
+      if related in label.classes:
         return True
-
-    for related in to.related:
-      if related in self.classes:
-        return True
-
     return False
 
+  def is_parent(self, label: Label) -> bool:
+    common = self.common(label)
+    return common == self.classes
 
 
 class Dataset(object):

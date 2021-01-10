@@ -28,6 +28,7 @@ def make_coco_predictor(model: Any, name: str):
     print(output)
     output.print()
     output.show()
+    print(output.names)
 
     results = []
     for i, (*box, conf, cls) in enumerate(output.pred[0]):
@@ -50,7 +51,6 @@ def make_imagenet_predictor(model: Any, name: str):
 
     print(f'{name} inference took {end - start} seconds')
 
-    print('output:', output.shape)
     results = []
     values, classes = torch.topk(nnf.softmax(output[0], dim=0), k)
     for conf, cls in zip(values, classes):
@@ -121,7 +121,7 @@ def run_predict(img: np.ndarray) -> PredictResults:
     # if no targets were found run both mobilenet and shufflenet
     # on the entire image to hopefully catch any large features.
     # we run on both nets here to improve regognition chance and
-    # so we can cross-reference the results for increased accuracy
+    # so we can cross-reference the results for increased accuracy.
     result_type = ResultType.NET
     results = run_broad_pass(img)
 
