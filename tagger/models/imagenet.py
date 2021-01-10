@@ -2,9 +2,9 @@
 Custom hand-annotated labels for the imagenet dataset
 http://www.image-net.org/
 """
-from dataset import Label, Dataset
+from models.dataset import Label, Dataset
 
-__imagenet_labels = [
+imagenet_labels = [
   Label(('animal', 'fish', 'tench')),
   Label(('animal', 'fish', 'goldfish')),
   Label(('animal', 'fish', 'shark', 'great white shark'), alt=('great white',)),
@@ -350,7 +350,7 @@ __imagenet_labels = [
   Label(('animal', 'mammal', 'wild boar')),
   Label(('animal', 'mammal', 'warthog')),
   Label(('animal', 'mammal', 'hippopotamus')),
-  Label(('animal', 'mammal', 'ox')),
+  Label(('animal', 'mammal', 'ox'), related=('cow',)),
   Label(('animal', 'mammal', 'water buffalo')),
   Label(('animal', 'mammal', 'bison')),
   Label(('animal', 'mammal', 'sheep', 'ram')),
@@ -1013,4 +1013,4 @@ Imagenet.relate('fish', 'water')
 Imagenet.relate('mollusk', 'water')
 Imagenet.relate('dog', 'pet')
 Imagenet.relate('cat', 'pet')
-Imagenet.register(__imagenet_labels)
+Imagenet.register(imagenet_labels)

@@ -2,9 +2,9 @@
 Custom hand-annotated labels for the COCO2017 dataset
 https://cocodataset.org
 """
-from dataset import Label, Dataset
+from models.dataset import Label, Dataset
 
-__coco_labels = [
+coco_labels = [
   Label(('person', 'person')),
   Label(('vehicle', 'bicycle'), alt=('bike',)),
   Label(('vehicle', 'car')),
@@ -29,7 +29,6 @@ __coco_labels = [
   Label(('animal', 'mammal', 'bear')),
   Label(('animal', 'mammal', 'zebra')),
   Label(('animal', 'mammal', 'giraffe')),
-  Label(('object', 'clothing', 'hat')),
   Label(('object', 'backpack')),
   Label(('object', 'umbrella')),
   Label(('object', 'clothing', 'shoe')),
@@ -98,4 +97,4 @@ __coco_labels = [
 ]
 
 Coco = Dataset('COCO 2017')
-Coco.register(__coco_labels)
+Coco.register(coco_labels)

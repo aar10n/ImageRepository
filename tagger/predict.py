@@ -4,13 +4,13 @@ import numpy as np
 import torch.nn.functional as nnf
 from torchvision.transforms import transforms
 from timeit import default_timer as timer
-from common import CustomThread
-from model import yolo, mobilenet, shufflenet, ResultType, BoxResult, NetResult
+from common.types import CustomThread
+from models.model import yolo, mobilenet, shufflenet, ResultType, BoxResult, NetResult
 from PIL import Image
 from box import Box
 
-from imagenet import Imagenet
-from coco import Coco
+from models.imagenet import Imagenet
+from models.coco import Coco
 
 BoxResults = List[Tuple[BoxResult, NetResult]]
 NetResults = List[Tuple[NetResult, NetResult]]
@@ -72,8 +72,8 @@ shufflenet_predictor = make_imagenet_predictor(shufflenet, 'Shufflenet')
 
 
 def run_broad_pass(img: Image.Image) -> NetResults:
-  t1 = CustomThread(target=mobilenet_predictor, args=(img, 2))
-  t2 = CustomThread(target=shufflenet_predictor, args=(img, 2))
+  t1 = CustomThread(target=mobilenet_predictor, args=(img,))
+  t2 = CustomThread(target=shufflenet_predictor, args=(img,))
   t1.start()
   t2.start()
   return list(zip(t1.join(), t2.join()))
@@ -104,7 +104,8 @@ def run_predict(img: np.ndarray) -> PredictResults:
     # yolo and then pass it to shufflenet. this will give us two
     # difference sources to make our prediction on, and will allow
     # a wider range of objects (namely animals) to be detected due
-    # to the shufflenet using the imagenet dataset (1001 classes vs 92).
+    # to the shufflenet using the imagenet dataset which has 1000
+    # classes vs coco's 90.
     threads = []
     for result in results:
       cropped = Image.fromarray(result.bbox.crop(np.asarray(img)))
@@ -112,7 +113,7 @@ def run_predict(img: np.ndarray) -> PredictResults:
       t.start()
       threads += [t]
 
-    outputs = [t.join() for t in threads]
+    outputs = unpack([t.join() for t in threads])
     result_type = ResultType.BOX
     results = list(zip(results, outputs))
   else:
@@ -121,7 +122,7 @@ def run_predict(img: np.ndarray) -> PredictResults:
     # we run on both nets here to improve regognition chance and
     # so we can cross-reference the results for increased accuracy
     result_type = ResultType.NET
-    results = [run_broad_pass(img)]
+    results = run_broad_pass(img)
 
   # -------------
   end = timer()

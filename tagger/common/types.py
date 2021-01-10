@@ -81,3 +81,8 @@ class Tag:
 
   # the tag type
   type: TagType
+
+
+#
+# Functions
+#

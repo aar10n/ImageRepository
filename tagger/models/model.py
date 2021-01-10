@@ -26,6 +26,14 @@ class NetResult:
   # the prediction confidence
   conf: float
 
+  def to_str(self) -> str:
+    name = self.label.name
+    name = name.lower().replace(' ', '-')
+
+    dataset = self.label.dataset.name
+    dataset = dataset.lower().replace(' ', '-')
+    return f'{name}-{self.label.cls}-{dataset}'
+
 
 @dataclass
 class BoxResult(NetResult):
