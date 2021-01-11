@@ -24,7 +24,7 @@ XYZ_TO_SRGB = [
   [+0.05563008, -0.20397696, +1.05697151]
 ]
 
-CIE_D65 = [95.047, 100, 108.883]
+CIE_D65 = [95.047, 100.0, 108.883]
 D = 0.206896552
 
 
@@ -64,12 +64,16 @@ class Color:
     self._x = x
     self._y = y
     self._z = z
-    self._name = name
+    self._name = name or self.to_hex()
+
+  def __repr__(self):
+    return self._name
+
+  def __str__(self):
+    return self._name
 
   def to_str(self) -> str:
-    if self._name:
-      return self._name
-    return self.to_hex()
+    return self._name
 
   def to_hex(self) -> str:
     c = self.to_rgb()
@@ -144,12 +148,15 @@ def from_rgb(r: int, g: int, b: int, name: str = None) -> Color:
 # Other Color Functions
 #
 
-def extract_palette(img: np.ndarray, num_colors: int = 5):
-  shape = img.shape
+def extract_palette(img: np.ndarray, num_colors: int = 5) -> List[Color]:
   img = Image.fromarray(img)
-  img = img.resize((int(shape[1] / 2), int(shape[0] / 2)))
   colors = colorgram.extract(img, num_colors)
   return [from_rgb(*c.rgb) for c in colors]
+
+
+def is_grayscale(color: Color) -> bool:
+  r, g, b = color.to_rgb()
+  return r == g and g == b
 
 
 #
@@ -172,14 +179,8 @@ def CIE00(x: Color, y: Color) -> float:
   Calculates the human perceived difference between two colors.
   http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
   """
-  def rad(d):
-    return radians(d)
-
-  def deg(r):
-    return degrees(r)
-
-  def pow2(v):
-    return pow(v, 2)
+  rad = lambda d: radians(d)
+  pow2 = lambda v: pow(v, 2)
 
   Kl = 1
   Kc = 1
@@ -198,7 +199,6 @@ def CIE00(x: Color, y: Color) -> float:
   C2_ab = calc_C_ab(2)
 
   C_ab = (C1_ab + C2_ab) / 2
-
   G = 0.5 * (1 - sqrt(pow(C_ab, 7) / (pow(C_ab, 7) + pow(25, 7))))
 
   calc_a = lambda i: (1 + G) * ao[i]
@@ -207,50 +207,40 @@ def CIE00(x: Color, y: Color) -> float:
   calc_C = lambda i: sqrt(pow2(a[i]) + pow2(bo[i]))
   C = {1: calc_C(1), 2: calc_C(2)}
 
-  calc_h = lambda i: atan2(bo[i], a[i]) % rad(360)
+  # calc_h = lambda i: atan2(bo[i], a[i]) % rad(360)
+  calc_h = lambda i: degrees(atan2(bo[i], a[i])) if bo[i] > 0 else 360 + degrees(atan2(bo[i], a[i]))
   h = {1: calc_h(1), 2: calc_h(2)}
 
   # 2. Calculate ΔL', ΔC' and ΔH'
   dL = Lo[2] - Lo[1]
   dC = C[2] - C[1]
-
   dh = h[2] - h[1]
-  if abs(dh) <= rad(180):
-    dh = dh
-  elif abs(dh) > rad(180) and h[2] <= h[1]:
-    dh = dh + rad(360)
-  elif abs(dh) > rad(180) and h[2] > h[1]:
-    dh = dh - rad(360)
+  if abs(dh) <= 180:
+    dh = abs(dh)
   else:
-    assert False
+    dh = 360 - abs(dh)
 
-  dH = 2 * sqrt(C[1] * C[2]) * sin(dh / 2)
+  dH = 2 * sqrt(C[1] * C[2]) * sin(rad(dh) / 2)
 
   # 3. Calculate CIEDE2000 Color Difference ΔE
   L_avg = (Lo[1] + Lo[2]) / 2
   C_avg = (C[1] + C[2]) / 2
 
-  rdh = h[1] - h[2]
-  if C[1] * C[2] == 0:
-    h_avg = h[1] + h[2]
-  elif abs(rdh) <= rad(180):
+  if abs(h[1] - h[2]) <= 180:
     h_avg = (h[1] + h[2]) / 2
-  elif abs(rdh) > rad(180) and rdh < rad(360):
-    h_avg = (h[1] + h[2] + rad(360)) / 2
-  elif abs(rdh) > rad(180) and rdh >= rad(360):
-    h_avg = (h[1] + h[2] - rad(360)) / 2
   else:
-    assert False
+    h_avg = (h[1] + h[2] - 360) / 2
 
-  T = 1 - 0.17 * cos(h_avg - rad(30)) + 0.24 * cos(2 * h_avg) \
-      + 0.32 * cos(3 * h_avg + rad(6)) - 0.2 * cos(4 * h_avg - rad(63))
-  theta = 30 * exp(-pow2((h_avg - rad(275)) / 25))
+  T = 1 - 0.17 * cos(rad(h_avg - 30)) + 0.24 * cos(rad(2 * h_avg)) \
+      + 0.32 * cos(rad(3 * h_avg + 6)) - 0.2 * cos(rad(4 * h_avg - 63))
+
+  theta = 30 * exp(-pow2((h_avg - 275) / 25))
 
   Rc = 2 * sqrt(pow(C_avg, 7) / (pow(C_avg, 7) + pow(25, 7)))
   Sl = 1 + ((0.015 * pow2(L_avg - 50)) / (sqrt(20 + pow2(L_avg - 50))))
   Sc = 1 + 0.045 * C_avg
   Sh = 1 + 0.015 * C_avg * T
-  Rt = -deg(sin(2 * theta) * Rc)
+  Rt = -sin(rad(2 * theta)) * Rc
 
   dLf = dL / (Kl * Sl)
   dCf = dC / (Kc * Sc)
@@ -265,13 +255,15 @@ def CIE00(x: Color, y: Color) -> float:
 #
 
 class Colors(object):
+  BLACK = from_hex('#000000', 'black')
+  WHITE = from_hex('#FFFFFF', 'white')
   RED = from_hex('#E72525', 'red')
   ORANGE = from_hex('#F48700', 'orange')
   LIGHT_ORANGE = from_hex('#ECA71D', 'light_orange')
   YELLOW = from_hex('#F1F12A', 'yellow')
   LIGHT_GREEN = from_hex('#A9E418', 'light_green')
   GREEN = from_hex('#06D506', 'green')
-  AQUAMARINE = from_hex('#0ECB9B', 'aquamarine')
+  AQUAMARINE = from_hex('#0ECB9C', 'aquamarine')
   CYAN = from_hex('#1AE0E0', 'cyan')
   TURQUOISE = from_hex('#0BBBF5', 'turquoise')
   LIGHT_BLUE = from_hex('#2055F8', 'light_blue')
@@ -283,6 +275,8 @@ class Colors(object):
   @staticmethod
   def as_list() -> List[Color]:
     return [
+      Colors.BLACK,
+      Colors.WHITE,
       Colors.RED,
       Colors.ORANGE,
       Colors.LIGHT_ORANGE,
@@ -301,6 +295,9 @@ class Colors(object):
 
   @staticmethod
   def find_closest(color: Color) -> Color:
+    if is_grayscale(color):
+      return Colors.BLACK
+
     deltas = [
       (CIE00(c, color), c) for c in Colors.as_list()
     ]
