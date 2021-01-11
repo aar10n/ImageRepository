@@ -257,6 +257,7 @@ def CIE00(x: Color, y: Color) -> float:
 class Colors(object):
   BLACK = from_hex('#000000', 'black')
   WHITE = from_hex('#FFFFFF', 'white')
+  GRAY = from_hex('#7F7F7F', 'gray')
   RED = from_hex('#E72525', 'red')
   ORANGE = from_hex('#F48700', 'orange')
   LIGHT_ORANGE = from_hex('#ECA71D', 'light_orange')
@@ -277,6 +278,7 @@ class Colors(object):
     return [
       Colors.BLACK,
       Colors.WHITE,
+      Colors.GRAY,
       Colors.RED,
       Colors.ORANGE,
       Colors.LIGHT_ORANGE,
@@ -295,9 +297,6 @@ class Colors(object):
 
   @staticmethod
   def find_closest(color: Color) -> Color:
-    if is_grayscale(color):
-      return Colors.BLACK
-
     deltas = [
       (CIE00(c, color), c) for c in Colors.as_list()
     ]
