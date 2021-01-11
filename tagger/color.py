@@ -1,12 +1,16 @@
 from typing import Tuple, cast, Any, Union, Iterable, List
 from collections.abc import Iterable as IterableClass
 from math import sqrt, sin, cos, atan2, exp, pow, radians, degrees
+from colorgram import colorgram
+from PIL import Image
 import numpy as np
 
 Range = Tuple[float, float]
 
 
-# RGB Color Space Matrices
+#
+# Constants and Helpers
+#
 
 SRGB_to_XYZ = [
   [0.41239080, 0.35758434, 0.18048079],
@@ -38,6 +42,10 @@ def convert_range(val: Union[float, Iterable[float]], src: Range, dest: Range) -
   return (((val - src[0]) * new_range) / old_range) + dest[0]
 
 
+#
+# Color Class
+#
+
 class Color:
   """
   Represents a CIE XYZ color and enables the conversion to
@@ -46,8 +54,9 @@ class Color:
   _x: float
   _y: float
   _z: float
+  _name: str
 
-  def __init__(self, x: float, y: float, z: float):
+  def __init__(self, x: float, y: float, z: float, name: str = None):
     assert 0 <= x <= 255
     assert 0 <= y <= 255
     assert 0 <= z <= 255
@@ -55,6 +64,12 @@ class Color:
     self._x = x
     self._y = y
     self._z = z
+    self._name = name
+
+  def to_str(self) -> str:
+    if self._name:
+      return self._name
+    return self.to_hex()
 
   def to_hex(self) -> str:
     c = self.to_rgb()
@@ -98,18 +113,20 @@ class Color:
     return self._x, self._y, self._z
 
 
+#
 # Color Conversion Functions
+#
 
-def from_hex(s: str) -> Color:
+def from_hex(s: str, name: str = None) -> Color:
   if s.startswith('#'):
     s = s[1:]
 
   assert len(s) == 6
   vals = [int(s[i:i + 2], 16) for i in range(0, len(s), 2)]
-  return from_rgb(*vals)
+  return from_rgb(*vals, name=name)
 
 
-def from_rgb(r: int, g: int, b: int) -> Color:
+def from_rgb(r: int, g: int, b: int, name: str = None) -> Color:
   def srgb_to_linear(u: float) -> float:
     if u <= 0.04045:
       return u / 12.92
@@ -120,10 +137,24 @@ def from_rgb(r: int, g: int, b: int) -> Color:
 
   c = np.asarray([[srgb_to_linear(v / 255)] for v in c])
   result = np.matmul(SRGB_to_XYZ, c).reshape(3)
-  return Color(*result)
+  return Color(*result, name=name)
 
 
+#
 # Other Color Functions
+#
+
+def extract_palette(img: np.ndarray, num_colors: int = 5):
+  shape = img.shape
+  img = Image.fromarray(img)
+  img = img.resize((int(shape[1] / 2), int(shape[0] / 2)))
+  colors = colorgram.extract(img, num_colors)
+  return [from_rgb(*c.rgb) for c in colors]
+
+
+#
+# Color Difference Algorithms
+#
 
 def CIE76(a: Color, b: Color):
   """
@@ -229,23 +260,25 @@ def CIE00(x: Color, y: Color) -> float:
   return E
 
 
-# Predefined Colors
+#
+# Custom Color Palette
+#
 
 class Colors(object):
-  RED = from_hex('#E72525')
-  ORANGE = from_hex('#F48700')
-  LIGHT_ORANGE = from_hex('#ECA71D')
-  YELLOW = from_hex('#F1F12A')
-  LIGHT_GREEN = from_hex('#A9E418')
-  GREEN = from_hex('#06D506')
-  AQUAMARINE = from_hex('#0ECB9B')
-  CYAN = from_hex('#1AE0E0')
-  TURQUOISE = from_hex('#0BBBF5')
-  LIGHT_BLUE = from_hex('#2055F8')
-  BLUE = from_hex('#0000FF')
-  PURPLE = from_hex('#7F00FF')
-  VIOLET = from_hex('#BF00FF')
-  MAGENTA = from_hex('#EA06B1')
+  RED = from_hex('#E72525', 'red')
+  ORANGE = from_hex('#F48700', 'orange')
+  LIGHT_ORANGE = from_hex('#ECA71D', 'light_orange')
+  YELLOW = from_hex('#F1F12A', 'yellow')
+  LIGHT_GREEN = from_hex('#A9E418', 'light_green')
+  GREEN = from_hex('#06D506', 'green')
+  AQUAMARINE = from_hex('#0ECB9B', 'aquamarine')
+  CYAN = from_hex('#1AE0E0', 'cyan')
+  TURQUOISE = from_hex('#0BBBF5', 'turquoise')
+  LIGHT_BLUE = from_hex('#2055F8', 'light_blue')
+  BLUE = from_hex('#0000FF', 'blue')
+  PURPLE = from_hex('#7F00FF', 'purple')
+  VIOLET = from_hex('#BF00FF', 'violet')
+  MAGENTA = from_hex('#EA06B1', 'magenta')
 
   @staticmethod
   def as_list() -> List[Color]:
