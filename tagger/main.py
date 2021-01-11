@@ -2,10 +2,12 @@ from typing import Optional, Awaitable
 import tornado.ioloop
 import tornado.web
 import os
-from image import Image
+from color import extract_palette
 from timeit import default_timer as timer
+from common.types import ImageData
 import analyze
 import predict
+
 
 IMAGE_DIR = os.path.abspath('../data/tmp')
 MIME_TYPES = ["image/gif", "image/jpeg", "image/png", "image/webp"]
@@ -24,18 +26,21 @@ class RequestHandler(tornado.web.RequestHandler):
       return
     print(im.shape)
 
-    # start = timer()
-    im.dominant_color()
-    # end = timer()
-    # print(f'Took {end - start} seconds')
+    start = timer()
+    # im.dominant_color()
+    colors = extract_palette(im.data)
+    for color in colors:
+      print(color.to_hex())
+    end = timer()
+    print(f'Took {end - start} seconds')
 
-    analyze.run_analyze(im)
+    # analyze.run_analysis(im)
 
     self.set_status(200)
 
   # private methods
 
-  def __validate_post_args(self) -> Optional[Image]:
+  def __validate_post_args(self) -> Optional[ImageData]:
     image_id = self.request.body_arguments.get('id')
     files = self.request.files.get('file')
     if image_id is None or files is None or len(files) != 1:
@@ -47,7 +52,7 @@ class RequestHandler(tornado.web.RequestHandler):
       self.set_status(415)
       return None
 
-    return Image(str(image_id), file)
+    return ImageData(str(image_id), file)
 
 
 if __name__ == "__main__":

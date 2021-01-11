@@ -1,14 +1,9 @@
 from typing import Tuple
-from image import Image
 from predict import run_predict, NetResults
+from common.types import ImageData, Tag, TagType
 from common import utils
 import math
 
-THRESHOLD_BASE = 0.1
-THRESHOLD = 0.25
-
-
-#
 
 def add_bias(bias: float, value: float) -> float:
   return max(0.0, min(bias + value, 1.0))
@@ -65,23 +60,14 @@ def analyze_results(results: NetResults):
 
     # pick the label with the highest confidence
     if xc >= threshold and xc >= yc:
-      label = x
-      conf = xc
+      valid += [(x, xc)]
     elif yc >= threshold:
-      label = y
-      conf = yc
-    else:
-      label = None
-      conf = 0.0
-
-    print(label, conf)
-    if label:
-      valid += [(label, conf)]
+      valid += [(y, yc)]
 
   return valid
 
 
-def run_analyze(img: Image):
+def run_analysis(img: ImageData):
   """
   Analyzes and returns information on the given image.
 

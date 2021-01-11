@@ -4,12 +4,10 @@ from typing import Any, Union
 from dataclasses import dataclass, is_dataclass, asdict
 from enum import Enum
 from threading import Thread
+import numpy as np
 import json
+import cv2
 
-
-#
-# Common Interfaces
-#
 
 class Serializable(ABC):
   @abstractmethod
@@ -18,9 +16,6 @@ class Serializable(ABC):
 
 
 #
-# Classes
-#
-
 
 class CustomThread(Thread):
   """
@@ -59,30 +54,40 @@ class CustomJSONEncoder(json.JSONEncoder):
 
 
 #
-# Enums
-#
-
 
 class TagType(Enum):
-  FEATURE = 0
-  RELATED = 0
-  COLOR = 0
+  KEYWORD = 'keyword'
+  COLOR = 'color'
+  ORIENTATION = 'orientation'
 
 
 #
-# Data Classes
-#
+
+class ImageData:
+  image_id: str
+  file_name: str
+  content_type: str
+  data: np.ndarray
+
+  def __init__(self, image_id: str, file: dict):
+    self.image_id = image_id
+    self.file_name = file['filename']
+    self.content_type = file['content_type']
+
+    nparr = np.frombuffer(file['body'], np.uint8)
+    self.data = cv2.imdecode(nparr, cv2.IMREAD_UNCHANGED)
+
+  @property
+  def shape(self):
+    return self.data.shape
+
 
 @dataclass
 class Tag:
   """
   Represents an image data tag.
   """
-
-  # the tag type
+  # the tag's type
   type: TagType
-
-
-#
-# Functions
-#
+  # the tag's value
+  value: str

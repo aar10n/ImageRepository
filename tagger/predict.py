@@ -25,10 +25,6 @@ def make_coco_predictor(model: Any, name: str):
     end = timer()
 
     print(f'{name} inference took {end - start} seconds')
-    print(output)
-    output.print()
-    output.show()
-    print(output.names)
 
     results = []
     for i, (*box, conf, cls) in enumerate(output.pred[0]):
