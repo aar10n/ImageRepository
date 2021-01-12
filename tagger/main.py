@@ -1,12 +1,11 @@
 from typing import Optional, Awaitable
+from color import extract_palette, Color, Colors
+from common.types import ImageData
+from color import CIE00, from_hex
 import tornado.ioloop
 import tornado.web
-import os
-from color import extract_palette
-from timeit import default_timer as timer
-from common.types import ImageData
 import analyze
-import predict
+import os
 
 
 IMAGE_DIR = os.path.abspath('../data/tmp')
@@ -26,16 +25,7 @@ class RequestHandler(tornado.web.RequestHandler):
       return
     print(im.shape)
 
-    start = timer()
-    # im.dominant_color()
-    colors = extract_palette(im.data)
-    for color in colors:
-      print(color.to_hex())
-    end = timer()
-    print(f'Took {end - start} seconds')
-
-    # analyze.run_analysis(im)
-
+    analyze.run_analysis(im)
     self.set_status(200)
 
   # private methods

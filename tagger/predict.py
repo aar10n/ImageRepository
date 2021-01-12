@@ -5,7 +5,7 @@ import torch.nn.functional as nnf
 from torchvision.transforms import transforms
 from timeit import default_timer as timer
 from common.types import CustomThread
-from model.models import yolo, mobilenet, shufflenet, ResultType, BoxResult, NetResult
+from model.models import yolo, mobilenet, shufflenet, BoxResult, NetResult
 from common.utils import unpack
 from PIL import Image
 from box import Box
@@ -15,7 +15,7 @@ from model.coco import Coco
 
 BoxResults = List[Tuple[BoxResult, NetResult]]
 NetResults = List[Tuple[NetResult, NetResult]]
-PredictResults = Tuple[ResultType, Union[BoxResults, NetResults]]
+PredictResults = Union[BoxResults, NetResults]
 
 
 def make_coco_predictor(model: Any, name: str):
@@ -90,9 +90,6 @@ def run_predict(img: np.ndarray) -> PredictResults:
   # convert BGR to RGB and load as PIL image
   img = Image.fromarray(img[:, :, ::-1])
 
-  start = timer()
-  # -------------
-
   # first run on yolonet to get bounding boxes and predictions
   results = yolo_predictor(img)
   if len(results) > 0:
@@ -111,18 +108,12 @@ def run_predict(img: np.ndarray) -> PredictResults:
       threads += [t]
 
     outputs = unpack([t.join() for t in threads])
-    result_type = ResultType.BOX
     results = list(zip(results, outputs))
   else:
     # if no targets were found run both mobilenet and shufflenet
     # on the entire image to hopefully catch any large features.
     # we run on both nets here to improve regognition chance and
     # so we can cross-reference the results for increased accuracy.
-    result_type = ResultType.NET
     results = run_broad_pass(img)
 
-  # -------------
-  end = timer()
-
-  print(f'Inference took {end - start} seconds')
-  return result_type, results
+  return results

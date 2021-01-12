@@ -30,7 +30,7 @@ coco_labels = [
   Label(('animal', 'mammal', 'zebra')),
   Label(('animal', 'mammal', 'giraffe')),
   Label(('object', 'backpack')),
-  Label(('object', 'umbrella')),
+  Label(('object', 'umbrella'), related=('rain',)),
   Label(('object', 'bag', 'handbag')),
   Label(('object', 'clothing', 'tie')),
   Label(('object', 'suitcase')),

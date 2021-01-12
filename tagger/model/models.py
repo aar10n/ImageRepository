@@ -1,7 +1,6 @@
 from typing import Any
 from dataclasses import dataclass
 from model.dataset import Label
-from enum import Enum
 from box import Box
 import torch
 
@@ -9,12 +8,6 @@ import torch
 #
 # Model Output Objects
 #
-
-
-class ResultType(Enum):
-  BOX = 0
-  NET = 1
-
 
 @dataclass
 class NetResult:

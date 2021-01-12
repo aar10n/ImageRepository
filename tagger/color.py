@@ -1,7 +1,11 @@
+from __future__ import annotations
 from typing import Tuple, cast, Any, Union, Iterable, List
 from collections.abc import Iterable as IterableClass
 from math import sqrt, sin, cos, atan2, exp, pow, radians, degrees
-from colorgram import colorgram
+from colorthief import MMCQ
+
+from common import utils
+from common.types import ColorType
 from PIL import Image
 import numpy as np
 
@@ -72,8 +76,8 @@ class Color:
   def __str__(self):
     return self._name
 
-  def to_str(self) -> str:
-    return self._name
+  def __eq__(self, other: Color):
+    return self._x == other._x and self._y == other._y and self._z == other._z
 
   def to_hex(self) -> str:
     c = self.to_rgb()
@@ -148,10 +152,20 @@ def from_rgb(r: int, g: int, b: int, name: str = None) -> Color:
 # Other Color Functions
 #
 
-def extract_palette(img: np.ndarray, num_colors: int = 5) -> List[Color]:
-  img = Image.fromarray(img)
-  colors = colorgram.extract(img, num_colors)
-  return [from_rgb(*c.rgb) for c in colors]
+def extract_palette(img: np.ndarray, num_colors: int = 5, quality: int = 10) -> List[Color]:
+  img = Image.fromarray(img).convert('RGBA')
+  w, h = img.size
+  pixels = img.getdata()
+  pixel_count = w * h
+  valid_pixels = []
+  for i in range(0, pixel_count, quality):
+    r, g, b, a = pixels[i]
+    if a >= 125:
+      if not (r > 250 and g > 250 and b > 250):
+        valid_pixels.append((r, g, b))
+
+  cmap = MMCQ.quantize(valid_pixels, num_colors)
+  return list(map(lambda t: from_rgb(*t), cmap.palette))
 
 
 def is_grayscale(color: Color) -> bool:
@@ -255,50 +269,38 @@ def CIE00(x: Color, y: Color) -> float:
 #
 
 class Colors(object):
-  BLACK = from_hex('#000000', 'black')
-  WHITE = from_hex('#FFFFFF', 'white')
-  GRAY = from_hex('#7F7F7F', 'gray')
-  RED = from_hex('#E72525', 'red')
-  ORANGE = from_hex('#F48700', 'orange')
-  LIGHT_ORANGE = from_hex('#ECA71D', 'light_orange')
-  YELLOW = from_hex('#F1F12A', 'yellow')
-  LIGHT_GREEN = from_hex('#A9E418', 'light_green')
-  GREEN = from_hex('#06D506', 'green')
-  AQUAMARINE = from_hex('#0ECB9C', 'aquamarine')
-  CYAN = from_hex('#1AE0E0', 'cyan')
-  TURQUOISE = from_hex('#0BBBF5', 'turquoise')
-  LIGHT_BLUE = from_hex('#2055F8', 'light_blue')
-  BLUE = from_hex('#0000FF', 'blue')
-  PURPLE = from_hex('#7F00FF', 'purple')
-  VIOLET = from_hex('#BF00FF', 'violet')
-  MAGENTA = from_hex('#EA06B1', 'magenta')
+  BLACK = from_hex('#000000', ColorType.BLACK)
+  WHITE = from_hex('#FFFFFF', ColorType.WHITE)
+  # GRAY = from_hex('#7F7F7F', ColorType.GRAY)
+
+  RED = from_hex('#E72525', ColorType.RED)
+  RED1 = from_hex('#2E0505', ColorType.RED)
+  RED2 = from_hex('#fAD1D1', ColorType.RED)
+
+  ORANGE = from_hex('#F48700', ColorType.ORANGE)
+  AMBER = from_hex('#ECA71D', ColorType.AMBER)
+  YELLOW = from_hex('#F1F12A', ColorType.YELLOW)
+  LIME = from_hex('#A9E418', ColorType.LIME)
+
+  GREEN = from_hex('#06D506', ColorType.GREEN)
+  GREEN1 = from_hex('#013201', ColorType.GREEN)
+  GREEN2 = from_hex('#CDFECD', ColorType.GREEN)
+
+  TEAL = from_hex('#0ECB9C', ColorType.TEAL)
+  TURQUOISE = from_hex('#1AE0E0', ColorType.TURQUOISE)
+  AQUA = from_hex('#0BBBF5', ColorType.AQUA)
+  AZURE = from_hex('#2055F8', ColorType.AZURE)
+  BLUE = from_hex('#0000FF', ColorType.BLUE)
+  PURPLE = from_hex('#7F00FF', ColorType.PURPLE)
+  ORCHID = from_hex('#BF00FF', ColorType.ORCHID)
+  MAGENTA = from_hex('#EA06B1', ColorType.MAGENTA)
 
   @staticmethod
   def as_list() -> List[Color]:
-    return [
-      Colors.BLACK,
-      Colors.WHITE,
-      Colors.GRAY,
-      Colors.RED,
-      Colors.ORANGE,
-      Colors.LIGHT_ORANGE,
-      Colors.YELLOW,
-      Colors.LIGHT_GREEN,
-      Colors.GREEN,
-      Colors.AQUAMARINE,
-      Colors.CYAN,
-      Colors.TURQUOISE,
-      Colors.LIGHT_BLUE,
-      Colors.BLUE,
-      Colors.PURPLE,
-      Colors.VIOLET,
-      Colors.MAGENTA
-    ]
+    return [c for c in Colors.__dict__.values() if isinstance(c, Color)]
 
   @staticmethod
   def find_closest(color: Color) -> Color:
-    deltas = [
-      (CIE00(c, color), c) for c in Colors.as_list()
-    ]
+    deltas = [(CIE00(c, color), c) for c in Colors.as_list()]
     deltas.sort(key=lambda t: t[0])
     return deltas[0][1]

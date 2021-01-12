@@ -1,8 +1,21 @@
-from typing import Tuple
+from typing import Tuple, List
+from timeit import default_timer as timer
+
+import cv2
+
+from common.types import ImageData, Tag, TagType, Orientation
+from model.dataset import Label
 from predict import run_predict, NetResults
-from common.types import ImageData, Tag, TagType
+from color import Colors, extract_palette, Color
 from common import utils
+import numpy as np
 import math
+
+
+KEYWORD_FILTER = [
+  'object',
+  'structure',
+]
 
 
 def add_bias(bias: float, value: float) -> float:
@@ -20,11 +33,64 @@ def count_instances(results: NetResults) -> Tuple[dict, dict]:
   return a_count, b_count
 
 
+def group_labels(labels: List[Label]) -> List[Tuple[Label, int]]:
+  unique = list(utils.unique(labels))
+  return [(l, labels.count(l)) for l in unique]
+
+
+def labels_to_tags(labels: List[Label]) -> List[Tag]:
+  def keyword_filter(w: str):
+    return lambda k: k != w and k not in KEYWORD_FILTER
+
+  labels = group_labels(labels)
+
+  tags = []
+  keywords = []
+  for label, count in labels:
+    tags += [Tag(TagType.FEATURE, (label.name, count))]
+    keywords += list(filter(keyword_filter(label.name), label.keywords))
+
+  for keyword in utils.unique(keywords):
+    tags += [Tag(TagType.KEYWORD, keyword)]
+  return tags
+
+
+def colors_to_tags(colors: List[Color]) -> List[Tag]:
+  print('colors', colors)
+
+  def is_grayscale(c: Color) -> bool:
+    return False
+    # return c == Colors.BLACK or \
+    #        c == Colors.WHITE or \
+    #        c == Colors.WHITE
+
+  if all(map(is_grayscale, colors)):
+    return [Tag(TagType.COLOR, 'bw')]
+
+  colors = [c for c in colors if not is_grayscale(c)]
+  return [Tag(TagType.COLOR, str(c)) for c in colors]
+
+
+def image_to_tags(img: np.ndarray) -> List[Tag]:
+  h, w = img.shape[:2]
+  wh = w / h
+  hw = h / w
+  diff = abs(wh - hw)
+
+  if diff <= 0.1:
+    return [Tag(TagType.ORIENTATION, Orientation.SQUARE)]
+  elif w > h:
+    return [Tag(TagType.ORIENTATION, Orientation.LANDSCAPE)]
+  return [Tag(TagType.ORIENTATION, Orientation.PORTRAIT)]
+
+
+#
+
 def analyze_results(results: NetResults):
   def group_bias(n: int) -> float:
     return 0.4988 - (1 / (pow(math.e, 0.62 * n - 5) + 2))
 
-  valid = []
+  labels = []
   a_count, b_count = count_instances(results)
   for a, b in results:
     x = a.label
@@ -32,6 +98,10 @@ def analyze_results(results: NetResults):
 
     xc = add_bias(a.conf, group_bias(a_count[a.to_str()]))
     yc = add_bias(b.conf, group_bias(b_count[b.to_str()]))
+
+    # print('>>>', x, xc)
+    # print('>>>', y, yc)
+    # print('')
 
     threshold = 0.25
     if x.classes == y.classes:
@@ -56,23 +126,58 @@ def analyze_results(results: NetResults):
       threshold = 0.4
     else:
       # x and y are not similar at all
-      threshold = 0.7
+      threshold = 0.5
 
     # pick the label with the highest confidence
     if xc >= threshold and xc >= yc:
-      valid += [(x, xc)]
+      labels += [x]
     elif yc >= threshold:
-      valid += [(y, yc)]
+      labels += [y]
 
-  return valid
+  return labels_to_tags(labels)
 
 
-def run_analysis(img: ImageData):
+def analyze_colors(img: np.ndarray) -> List[Tag]:
+  img = img[:, :, ::-1]
+  target = 1000
+
+  h, w = img.shape[:2]
+  if w > target and w > h:
+    img = utils.resize(img, width=target)
+  elif h > target and h > w:
+    img = utils.resize(img, height=target)
+  elif w > target and h > target:
+    img = utils.resize(img, width=target, height=target)
+
+  colors = extract_palette(img)
+  colors = [Colors.find_closest(c) for c in colors]
+  return colors_to_tags(colors)
+
+
+def run_analysis(img: ImageData) -> List[Tag]:
   """
   Analyzes and returns information on the given image.
 
   :param img:
   :return:
   """
-  res_type, results = run_predict(img.data)
-  analyze_results(results)
+  tags = []
+
+  a_start = timer()
+  results = run_predict(img.data)
+  a_end = timer()
+
+  b_start = timer()
+  tags += analyze_results(results)
+  tags += image_to_tags(img.data)
+  b_end = timer()
+
+  print('----- Analysis Results -----')
+  for tag in tags:
+    print(tag)
+  print('----------------------------')
+  print(f'Inference took {a_end - a_start} seconds')
+  print(f'Analysis took {b_end - b_start} seconds')
+  print('')
+
+  return tags

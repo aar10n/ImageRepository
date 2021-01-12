@@ -41,6 +41,10 @@ class Label:
     """
     return self.classes[-1]
 
+  @property
+  def keywords(self):
+    return self.classes + self.alt + self.related
+
   #
 
   def common(self, label: Label) -> Tuple[str, ...]:

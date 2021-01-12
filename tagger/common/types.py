@@ -55,10 +55,37 @@ class CustomJSONEncoder(json.JSONEncoder):
 
 #
 
+class ColorType:
+  BLACK = 'black'
+  WHITE = 'white'
+  GRAY = 'gray'
+  RED = 'red'
+  ORANGE = 'orange'
+  AMBER = 'amber'
+  YELLOW = 'yellow'
+  LIME = 'lime'
+  GREEN = 'green'
+  TEAL = 'teal'
+  TURQUOISE = 'turquoise'
+  AQUA = 'aqua'
+  AZURE = 'azure'
+  BLUE = 'blue'
+  PURPLE = 'purple'
+  ORCHID = 'orchid'
+  MAGENTA = 'magenta'
+
+
 class TagType(Enum):
+  FEATURE = 'feature'
   KEYWORD = 'keyword'
   COLOR = 'color'
   ORIENTATION = 'orientation'
+
+
+class Orientation(Enum):
+  PORTRAIT = 'portrait'
+  LANDSCAPE = 'landscape'
+  SQUARE = 'square'
 
 
 #
@@ -90,4 +117,4 @@ class Tag:
   # the tag's type
   type: TagType
   # the tag's value
-  value: str
+  value: Any
