@@ -1,8 +1,12 @@
 """
 Shared utility functions
 """
-from typing import Any, Generator, Iterable, Sequence
+from typing import Any, Generator, Iterable, Sequence, Union
+from dataclasses import is_dataclass, asdict
+from common.types import Serializable
+from enum import Enum
 import numpy as np
+import json
 import cv2
 
 
@@ -36,6 +40,19 @@ def resize(img: np.ndarray, width: int = None, height: int = None) -> np.ndarray
     interp = cv2.INTER_LINEAR
 
   return cv2.resize(img, (width, height), interpolation=interp)
+
+
+def serialize(o: Any) -> str:
+  def custom_serialize(obj: Any) -> Union[dict, list]:
+    if isinstance(obj, Serializable):
+      return obj.as_json()
+    elif isinstance(obj, Enum):
+      return obj.value
+    elif is_dataclass(obj):
+      return asdict(obj)
+    raise TypeError
+
+  return json.dumps(o, default=custom_serialize)
 
 
 def scale(img: np.ndarray, value: float) -> np.ndarray:

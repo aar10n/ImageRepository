@@ -1,7 +1,6 @@
 from typing import Optional, Awaitable
-from color import extract_palette, Color, Colors
 from common.types import ImageData
-from color import CIE00, from_hex
+from common import utils
 import tornado.ioloop
 import tornado.web
 import analyze
@@ -17,7 +16,7 @@ class RequestHandler(tornado.web.RequestHandler):
     return super(RequestHandler, self).data_received(chunk)
 
   def get(self):
-    self.write("Hello, world")
+    self.set_status(200)
 
   def post(self):
     im = self.__validate_post_args()
@@ -25,7 +24,10 @@ class RequestHandler(tornado.web.RequestHandler):
       return
     print(im.shape)
 
-    analyze.run_analysis(im)
+    tags = analyze.run_analysis(im)
+    result = utils.serialize(tags)
+    self.write(result)
+    self.set_header('Content-Type', 'application/json; charset=UTF-8')
     self.set_status(200)
 
   # private methods

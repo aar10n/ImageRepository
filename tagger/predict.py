@@ -20,11 +20,11 @@ PredictResults = Union[BoxResults, NetResults]
 
 def make_coco_predictor(model: Any, name: str):
   def yolo_predict(img: Image.Image) -> List[BoxResult]:
-    start = timer()
+    # start = timer()
     output = model([img], size=640)
-    end = timer()
+    # end = timer()
 
-    print(f'{name} inference took {end - start} seconds')
+    # print(f'{name} inference took {end - start} seconds')
 
     results = []
     for i, (*box, conf, cls) in enumerate(output.pred[0]):

@@ -1,11 +1,10 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Union
-from dataclasses import dataclass, is_dataclass, asdict
+from dataclasses import dataclass
 from enum import Enum
 from threading import Thread
 import numpy as np
-import json
 import cv2
 
 
@@ -38,19 +37,6 @@ class CustomThread(Thread):
   def join(self, timeout=None) -> Any:
     super().join(timeout)
     return self._value
-
-
-class CustomJSONEncoder(json.JSONEncoder):
-  """
-  A custom `JSONEncoder` subclass that adds the ability to
-  serialize data classes into json automatically.
-  """
-  def default(self, o: Any) -> Any:
-    if isinstance(o, Serializable):
-      return o.as_json()
-    if is_dataclass(o):
-      return asdict(o)
-    return json.JSONEncoder.default(self, o).default(o)
 
 
 #
