@@ -4,6 +4,7 @@ class Image < ApplicationRecord
 
   self.implicit_order_column = :created_at
   has_many :tags
+  has_one :upload
 
   after_initialize :default_values
   def default_values
@@ -14,6 +15,11 @@ class Image < ApplicationRecord
     self.description ||= nil
     self.private ||= false
     self.published ||= false
+  end
+
+  # @return [Image]
+  def as_model
+    self
   end
 
   def as_json(options = nil)

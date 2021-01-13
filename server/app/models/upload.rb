@@ -4,8 +4,5 @@
 # filled in via a PUT request to a special url.
 class Upload < ApplicationRecord
   include ActiveModel::Serialization
-
-  # def attributes
-  #   { "url" => nil }
-  # end
+  belongs_to :image
 end

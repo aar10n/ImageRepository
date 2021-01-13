@@ -21,16 +21,15 @@ module TagService
     c.multipart_form_post = true
     c.http_post(id, file)
     raise HttpError, 500 unless c.response_code == 200
-
     res = JSON.parse(c.body_str, symbolize_names: true)
 
-    # update image attributes
-    attributes = {
+
+    params = {
       width: res[:width],
       height: res[:height],
       orientation: res[:orientation]
     }
-    image.update(attributes)
+    image.update(params)
 
     tags, keywords = res[:tags].reduce([[], []]) do |acc, tag|
       t, k = acc
@@ -39,10 +38,20 @@ module TagService
       value = tag[:value]
       case kind
       when "feature"
-        t << { kind: kind, value: value[0], count: value[1] }
+        t << {
+          image_id: image.id,
+          kind: kind,
+          value: value[0],
+          count: value[1]
+        }
         k << value[0]
       when "color"
-        t << { kind: kind, value: value, count: nil }
+        t << {
+          image_id: image.id,
+          kind: kind,
+          value: value,
+          count: nil
+        }
       when "keyword"
         k << value
       else
@@ -52,12 +61,32 @@ module TagService
       [t, k]
     end
 
-    tags.each do |t|
-      t[:image_id] = image.id
-      tag = Tag.new(t)
-      tag.save!
+    image.tags.create(tags)
+    keywords
+  end
+
+  # @param image [Image]
+  # @param keywords [Array<String>]
+  def self.add_keywords(image, keywords)
+    return if keywords.length.zero?
+
+    tags = keywords.map do |keyword|
+      {
+        image_id: image.id,
+        kind: "keyword",
+        value: keyword,
+        count: nil
+      }
     end
 
-    keywords
+    image.tags.create(tags)
+  end
+
+  # Returns +true+ if the tagger server is online
+  # and reachable.
+  # @return [Boolean]
+  def self.tagger_online?
+    c = Curl.get(TAGGER_URL)
+    c.response_code == 200
   end
 end

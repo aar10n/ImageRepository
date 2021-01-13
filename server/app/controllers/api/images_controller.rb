@@ -10,12 +10,12 @@ module Api
     #   page_size - specifies how many items are returned per page.
     def index
       render status: 200
-      # page, page_size = validate_index_params!
-      # images = ImageServices::FetchImages.new(page, page_size).call
-      # puts ">> images"
-      # puts images
-      #
-      # render status: 200, json: images
+      page, page_size = validate_index_params!
+      images = ImageService.fetch_images(page, page_size)
+      puts ">> images"
+      puts images
+
+      render status: 200, json: images
     end
 
     # == GET
@@ -37,11 +37,11 @@ module Api
     #              batch_id is given.
     def update
       key, data = validate_update_params!
-      images = ImageServices::UploadMetadata.new(
+      images = ImageService.upload_metadata(
         params[key].to_s,
-        metadata: data,
+        data,
         is_batch: key == :batch_id
-      ).call
+      )
 
       # unwrap the array for the single item case
       images = images[0] if key == :id
@@ -50,9 +50,7 @@ module Api
 
     # == PATCH
     # Modifies the metadata of an uploaded image.
-    def edit
-
-    end
+    def edit; end
 
     # == DELETE
     def destroy
@@ -68,9 +66,12 @@ module Api
       puts "create", params
 
       files = validate_create_params!
-      url = ImageServices::UploadImages.new(files).call
+      url, tags = ImageService.upload_images(files)
+      puts ">> done uploading!"
+      puts ">> url: #{url}"
+      puts ">> tags: #{tags}"
       response.location = url
-      render status: 201, json: { url: url }
+      render status: 201, json: { url: url, tags: tags }
     end
 
     private
