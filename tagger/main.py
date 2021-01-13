@@ -1,14 +1,11 @@
 from typing import Optional, Awaitable
-from tornado.gen import coroutine, sleep
+from tornado.gen import coroutine
 from common.types import ImageData
 from common import utils
 import tornado.ioloop
 import tornado.web
 import analyze
-import os
 
-
-IMAGE_DIR = os.path.abspath('../data/tmp')
 MIME_TYPES = ["image/gif", "image/jpeg", "image/png", "image/webp"]
 
 
@@ -18,19 +15,6 @@ class RequestHandler(tornado.web.RequestHandler):
 
   @coroutine
   def get(self):
-    if 'wait' in self.request.arguments:
-      try:
-        print(self.request.arguments['wait'][0])
-        wait = int(self.request.arguments['wait'][0])
-      except:
-        self.set_status(400)
-        return
-    else:
-      wait = 0
-
-    print(f'>> sleeping for {wait} seconds')
-    yield sleep(wait)
-    print('>> done!')
     self.set_status(200)
 
   @coroutine
