@@ -1,4 +1,5 @@
 from typing import Optional, Awaitable
+from tornado.gen import coroutine, sleep
 from common.types import ImageData
 from common import utils
 import tornado.ioloop
@@ -15,18 +16,31 @@ class RequestHandler(tornado.web.RequestHandler):
   def data_received(self, chunk: bytes) -> Optional[Awaitable[None]]:
     return super(RequestHandler, self).data_received(chunk)
 
+  @coroutine
   def get(self):
+    if 'wait' in self.request.arguments:
+      try:
+        print(self.request.arguments['wait'][0])
+        wait = int(self.request.arguments['wait'][0])
+      except:
+        self.set_status(400)
+        return
+    else:
+      wait = 0
+
+    print(f'>> sleeping for {wait} seconds')
+    yield sleep(wait)
+    print('>> done!')
     self.set_status(200)
 
+  @coroutine
   def post(self):
     im = self.__validate_post_args()
     if im is None:
       return
-    print(im.shape)
 
-    tags = analyze.run_analysis(im)
-    result = utils.serialize(tags)
-    self.write(result)
+    result = analyze.run_analysis(im)
+    self.write(utils.serialize(result))
     self.set_header('Content-Type', 'application/json; charset=UTF-8')
     self.set_status(200)
 

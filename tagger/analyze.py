@@ -71,17 +71,17 @@ def colors_to_tags(colors: List[Color]) -> List[Tag]:
   return [Tag(TagType.COLOR, str(c)) for c in colors]
 
 
-def image_to_tags(img: np.ndarray) -> List[Tag]:
+def get_image_info(img: np.ndarray) -> Tuple[int, int, Orientation]:
   h, w = img.shape[:2]
   wh = w / h
   hw = h / w
   diff = abs(wh - hw)
 
   if diff <= 0.1:
-    return [Tag(TagType.ORIENTATION, Orientation.SQUARE)]
+    return w, h, Orientation.SQUARE
   elif w > h:
-    return [Tag(TagType.ORIENTATION, Orientation.LANDSCAPE)]
-  return [Tag(TagType.ORIENTATION, Orientation.PORTRAIT)]
+    return w, h, Orientation.LANDSCAPE
+  return w, h, Orientation.PORTRAIT
 
 
 #
@@ -154,7 +154,7 @@ def analyze_colors(img: np.ndarray) -> List[Tag]:
   return colors_to_tags(colors)
 
 
-def run_analysis(img: ImageData) -> List[Tag]:
+def run_analysis(img: ImageData) -> dict:
   """
   Analyzes and returns information on the given image.
 
@@ -169,10 +169,13 @@ def run_analysis(img: ImageData) -> List[Tag]:
 
   b_start = timer()
   tags += analyze_results(results)
-  tags += image_to_tags(img.data)
+  # tags += analyze_colors(img.data)
   b_end = timer()
 
+  width, height, orientation = get_image_info(img.data)
+
   print('----- Analysis Results -----')
+  print(f'width: {width} | height: {height} | orientation: {orientation}')
   for tag in tags:
     print(tag)
   print('----------------------------')
@@ -180,4 +183,9 @@ def run_analysis(img: ImageData) -> List[Tag]:
   print(f'Analysis took {b_end - b_start} seconds')
   print('')
 
-  return tags
+  return {
+    'width': width,
+    'height': height,
+    'orientation': orientation,
+    'tags': tags
+  }
