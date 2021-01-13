@@ -116,10 +116,6 @@ module Utils
     end
 
     #
-    # Qualifiers
-    #
-
-    #
     # Scopes
     #
 
@@ -233,7 +229,8 @@ module Utils
     # Conditions
     #
 
-    # Matches a given type and optionally value.
+    # Matches a value of the given type, and optionally value.
+    # @return [Proc] A proc that returns +true+ if the object matches.
     def is?(type, value: ANY)
       v1 = wrap(type)
       v2 = wrap(value, ->(a, b) { a == b })
@@ -242,9 +239,9 @@ module Utils
       end
     end
 
-    # Matches a +Hash+ with the given key. Optionally the
-    # type/value of the key can be tested for some condition
-    # as well.
+    # Matches a +Hash+ with the given key and optionally the
+    # type/value.
+    # @return [Proc] A proc that returns +true+ if the object matches.
     def key?(key, is: ANY)
       v = wrap(is)
       proc do |o|
@@ -253,12 +250,14 @@ module Utils
     end
 
     # Matches a given value.
+    # @return [Proc] A proc that returns +true+ if the object matches.
     def value?(value)
       wrap(value, ->(a, b) { a == b })
     end
 
     # Matches an +Array+ and optionally, with the elements
     # also matching some type.
+    # @return [Proc] A proc that returns +true+ if the object matches.
     def array?(of: ANY)
       v = wrap(of)
       ->(o) { o.is_a? Array and o.map { |e| v.call(e) }.all? }
@@ -266,6 +265,7 @@ module Utils
 
     # Matches a type that is present in the given types.
     # @param types [Array<Class>] The possible types.
+    # @return [Proc] A proc that returns +true+ if the object matches.
     def union?(*types)
       tm = types.map { |t| wrap(t) }
       ->(o) { tm.map { |t| t.call(o) }.any? }
@@ -273,12 +273,32 @@ module Utils
 
     # Matches a value that is present in the given values.
     # @param values [Array<Any>] The possible values
+    # @return [Proc] A proc that returns +true+ if the object matches.
     def in?(*values)
       if !values.nil?
         values = values[0] if values.length == 1 and values[0].is_a? Array
         ->(o) { values.map { |l| wrap(l, ->(a, b) { a == b}).call(o) }.any? }
       else
         ANY
+      end
+    end
+
+    # Matches a string that represents an integer value. By
+    # default it only matches positive integer values but an
+    # optional range my also be supplied.
+    # @param range [Range] The range of numbers to match.
+    # @return [Proc] A proc that returns +true+ if the object matches.
+    def integer?(range: (1..))
+      proc do |o|
+        o.is_a? String and o.is_i? and range.include?(o.to_i)
+      end
+    end
+
+    # Matches a string that represents a boolean value.
+    # @return [Proc] A proc that returns +true+ if the object matches.
+    def boolean?
+      proc do |o|
+        o.is_a? String and o.is_b?
       end
     end
 

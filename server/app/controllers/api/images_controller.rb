@@ -1,5 +1,3 @@
-# require "support/utils"
-
 ALLOWED_MIME_TYPES = %w[image/gif image/jpeg image/png image/webp]
 
 module Api
@@ -85,13 +83,13 @@ module Api
     def validate_index_params!
       valid_params = Utils.validator do
         optional do
-          key :page, is: ->(s) { s.is_i? } # integer string?
-          key :page_size, is: proc { |s| s.is_i? } # integer string?
+          key :page, is: integer?
+          key :page_size, is: integer?
         end
       end
 
       options = request.query_parameters
-      raise 400 unless  valid_params.call(options)
+      raise 400 unless valid_params.call(options)
 
       [options[:page]&.to_i(10), options[:page_size]&.to_i(10)]
     end
@@ -101,7 +99,7 @@ module Api
       keys = %i[id batch_id].filter { |s| params.key?(s) }
       raise HttpError, 400 unless keys.length == 1
 
-      data = symbolize JSON.parse(request.body.read)
+      data = JSON.parse(request.body.read, symbolize_keys: true)
 
       if params.key?(:id)
         validate_metadata! data
@@ -154,19 +152,6 @@ module Api
     def validate_image_array!(obj)
       raise HttpError, 400 unless obj.is_a? Array
       obj.each { |o| validate_image!(o) }
-    end
-
-    # helpers
-
-    def symbolize(obj)
-      case obj
-      when Array
-        obj.map { |e| symbolize(e) }
-      when Hash
-        obj.symbolize_keys
-      else
-        raise RuntimeError
-      end
     end
   end
 end
