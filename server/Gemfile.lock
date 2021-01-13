@@ -65,6 +65,7 @@ GEM
     chronic (0.10.2)
     concurrent-ruby (1.1.7)
     crass (1.0.6)
+    curb (0.9.11)
     elasticsearch (7.10.0)
       elasticsearch-api (= 7.10.0)
       elasticsearch-transport (= 7.10.0)
@@ -167,6 +168,7 @@ PLATFORMS
 
 DEPENDENCIES
   byebug
+  curb (~> 0.9.11)
   elasticsearch-model (~> 7.1)
   elasticsearch-rails (~> 7.1)
   listen (~> 3.3)
