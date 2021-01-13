@@ -2,6 +2,17 @@ ANY = proc { true }
 NONE = proc { false }
 
 module Utils
+  def self.symbolize(obj)
+    case obj
+    when Array
+      obj.map { |e| Utils.symbolize(e) }
+    when Hash
+      obj.symbolize_keys
+    else
+      raise RuntimeError
+    end
+  end
+
   # Creates a new validator from the block.
   # @return [Proc] A validator function that takes an object
   #                and returns true or false.
@@ -32,7 +43,11 @@ module Utils
     # @return [Proc] The validator function.
     def build
       lambda do |obj|
-        @validators.map { |v| v.call(obj) }.all?
+        if @validators.length.zero?
+          true
+        else
+          @validators.map { |v| v.call(obj) }.all?
+        end
       rescue => e
         raise e unless @options[:rescue].call(e)
         false
@@ -40,7 +55,7 @@ module Utils
     end
 
     #
-    # Core matchers
+    # Top level validators
     #
 
     # Asserts that the object being validated is some type.
@@ -57,7 +72,7 @@ module Utils
         end
 
       v2 = wrap(value, ->(a, b) { a == b })
-      @validators << lambda do |o|
+      @validators << proc do |o|
         v1.call(o) and v2.call(o)
       end
     end
@@ -74,10 +89,16 @@ module Utils
     # @param optional [Boolean] Whether condition is optional.
     def key(key, is: ANY, optional: false, &block)
       opt = @options[:optional] || optional
-      v = block_given? ? ValidatorBuilder.new(self, @options, &block).build : wrap(is)
+      v =
+        if is == ANY and !optional and block_given?
+          ValidatorBuilder.new(self, @options, &block).build
+        else
+          wrap(is)
+        end
+
       @keys << key
       @parent.keys << key unless @parent.nil?
-      @validators << lambda do |o|
+      @validators << proc do |o|
         o.is_a? Hash and (o.key?(key) ? v.call(o[key]) : opt)
       end
     end
@@ -89,47 +110,17 @@ module Utils
       allowed = %i[== < > <= >= !=]
       op = operator.in?(allowed) ? operator : :==
 
-      @validators << lambda do |o|
+      @validators << proc do |o|
         o.respond_to?(:length) and o.length.send(op, n)
       end
     end
 
     #
-    # Other validators
+    # Qualifiers
     #
 
-    # Defines the type of the array holding some type. This
-    # is to be used in the type parameter of the +is+ or +key+
-    # functions.
-    # @param of [Class, Proc] The expected contents of the array.
-    def array(of: ANY)
-      v = wrap(of)
-      ->(o) { o.is_a? Array and o.map { |e| v.call(e) }.all? }
-    end
-
-    # Defines a union of types. This is to be used in the type
-    # parameter of the +is+ or +key+ functions and causes any
-    # of the specified types to be matched.
-    # @param types [Array<Class>] The possible types.
-    def union(*types)
-      tm = types.map { |t| wrap(t) }
-      ->(o) { tm.map { |t| t.call(o) }.any? }
-    end
-
-    # Defines a union of values. This is to be used in the value
-    # parameter of the +value+ function and causes any of the
-    # specified values to be matched.
-    # @param values [Array<Any>] The possible values
-    def oneof(*values)
-      if !values.nil?
-        ->(o) { values.map { |l| wrap(l, ->(a, b) { a == b}).call(o) }.all? }
-      else
-        ANY
-      end
-    end
-
     #
-    # Scope types
+    # Scopes
     #
 
     # Asserts that none of the conditions defined in the
@@ -162,9 +153,14 @@ module Utils
     def one(&block)
       @validators <<
         if block_given?
-          val = ValidatorBuilder.new(self, @options, &block)
+          opts = @options.dup
+          opts[:optional] = false
+          val = ValidatorBuilder.new(self, opts, &block)
           @keys << val.keys
-          ->(obj) { val.validators.map { |v| v.call(obj) }.one? }
+          # ->(obj) { val.validators.map { |v| v.call(obj) }.one? }
+          proc do |obj|
+            val.validators.map { |v| v.call(obj) }.one?
+          end
         else
           ANY
         end
@@ -175,7 +171,9 @@ module Utils
     def all(&block)
       @validators <<
         if block_given?
-          val = ValidatorBuilder.new(self, @options, &block)
+          opts = @options.dup
+          opts[:optional] = false
+          val = ValidatorBuilder.new(self, opts, &block)
           @keys << val.keys
           ->(obj) { val.validators.map { |v| v.call(obj) }.all? }
         else
@@ -210,6 +208,94 @@ module Utils
         end
     end
 
+    # Scope that is only evaluated if the given condition is met.
+    # @param cond [Any] The condition to evaluate at the current scope.
+    def if?(cond, &block)
+      c = wrap(cond, ->(a, b) { a == b })
+      @validators <<
+        if block_given?
+          opts = @options.dup
+          opts[:optional] = false
+          proc do |o|
+            if c.call(o)
+              v = ValidatorBuilder.new(self, opts, &block).build
+              v.call(o)
+            else
+              true
+            end
+          end
+        else
+          ANY
+        end
+    end
+
+    #
+    # Conditions
+    #
+
+    # Matches a given type and optionally value.
+    def is?(type, value: ANY)
+      v1 = wrap(type)
+      v2 = wrap(value, ->(a, b) { a == b })
+      proc do |o|
+        v1.call(o) and v2.call(o)
+      end
+    end
+
+    # Matches a +Hash+ with the given key. Optionally the
+    # type/value of the key can be tested for some condition
+    # as well.
+    def key?(key, is: ANY)
+      v = wrap(is)
+      proc do |o|
+        o.is_a? Hash and (o.key?(key) ? v.call(o[key]) : false)
+      end
+    end
+
+    # Matches a given value.
+    def value?(value)
+      wrap(value, ->(a, b) { a == b })
+    end
+
+    # Matches an +Array+ and optionally, with the elements
+    # also matching some type.
+    def array?(of: ANY)
+      v = wrap(of)
+      ->(o) { o.is_a? Array and o.map { |e| v.call(e) }.all? }
+    end
+
+    # Matches a type that is present in the given types.
+    # @param types [Array<Class>] The possible types.
+    def union?(*types)
+      tm = types.map { |t| wrap(t) }
+      ->(o) { tm.map { |t| t.call(o) }.any? }
+    end
+
+    # Matches a value that is present in the given values.
+    # @param values [Array<Any>] The possible values
+    def in?(*values)
+      if !values.nil?
+        values = values[0] if values.length == 1 and values[0].is_a? Array
+        ->(o) { values.map { |l| wrap(l, ->(a, b) { a == b}).call(o) }.any? }
+      else
+        ANY
+      end
+    end
+
+    # operators
+
+    def and?(*conds)
+      ->(o) { conds.map(->(c) { wrap(c).call(o) }).all? }
+    end
+
+    def or?(*conds)
+      ->(o) { conds.map(->(c) { wrap(c).call(o) }).any? }
+    end
+
+    def not?(*conds)
+      ->(o) { conds.map(->(c) { wrap(c).call(o) }).none? }
+    end
+
     #
     # Scope options
     #
@@ -238,6 +324,5 @@ module Utils
         ->(o) { o.is_a? arg }
       end
     end
-
   end
 end
