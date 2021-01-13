@@ -27,11 +27,14 @@ module ImageServices
       # Image and Upload instance, and save them
       # into the database.
       uploaded = @files.map do |file|
-        image = Image.new(file.reject { |key| key == :data})
+        image = Image.new(file.reject { |key| key == :data })
         image.save!
+
+        TagService.tag_image(image, file[:data])
 
         upload = Upload.new(upload_params(batch_id, image.id, file[:data]))
         upload.save!
+
         image.id
       end
 

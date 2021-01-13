@@ -33,8 +33,9 @@ module ImageServices
           metadata[:tags].each do |value|
             params = {
               image_id: image.id,
-              kind: "user",
-              value: value
+              kind: "keyword",
+              value: value,
+              count: nil
             }
 
             tag = Tag.new(params)

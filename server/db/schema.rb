@@ -20,11 +20,13 @@ ActiveRecord::Schema.define(version: 2020_12_23_203412) do
     t.string "file_name"
     t.integer "file_size"
     t.string "mime_type"
-    t.string "title"
+    t.integer "width"
+    t.integer "height"
+    t.string "orientation"
+    t.string "shortlink"
     t.string "description"
     t.boolean "private"
     t.boolean "published"
-    t.string "shortlink"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
@@ -33,6 +35,7 @@ ActiveRecord::Schema.define(version: 2020_12_23_203412) do
     t.uuid "image_id", null: false
     t.string "kind"
     t.string "value"
+    t.integer "count"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["image_id"], name: "index_tags_on_image_id"

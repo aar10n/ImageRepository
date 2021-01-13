@@ -2,17 +2,18 @@
 class Image < ApplicationRecord
   include ActiveModel::Serialization
 
-
   self.implicit_order_column = :created_at
   has_many :tags
 
   after_initialize :default_values
   def default_values
-    self.title ||= nil
+    self.width ||= -1
+    self.height ||= -1
+    self.orientation ||= nil
+    self.shortlink ||= nil
     self.description ||= nil
     self.private ||= false
     self.published ||= false
-    self.shortlink ||= nil
   end
 
   def as_json(options = nil)

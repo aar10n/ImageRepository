@@ -4,6 +4,7 @@ class CreateTags < ActiveRecord::Migration[6.1]
       t.references :image, null: false, type: :uuid, foreign_key: true
       t.string :kind
       t.string :value
+      t.integer :count
 
       t.timestamps
     end
