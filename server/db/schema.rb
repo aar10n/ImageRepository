@@ -17,16 +17,17 @@ ActiveRecord::Schema.define(version: 2020_12_23_203412) do
   enable_extension "plpgsql"
 
   create_table "images", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "shortlink"
     t.string "file_name"
     t.integer "file_size"
     t.string "mime_type"
     t.integer "width"
     t.integer "height"
     t.string "orientation"
-    t.string "shortlink"
+    t.string "title"
     t.string "description"
     t.boolean "private"
-    t.boolean "published"
+    t.datetime "published_at"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end

@@ -2,6 +2,7 @@ ANY = proc { true }
 NONE = proc { false }
 
 module Utils
+  # @param obj [Array, Hash]
   def self.symbolize(obj)
     case obj
     when Array

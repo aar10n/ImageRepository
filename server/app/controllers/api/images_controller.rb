@@ -18,23 +18,10 @@ module Api
       render status: 200, json: images
     end
 
-    # == GET
-    # Returns a single image.
-    #
-    # == Query Parameters:
-    #   metadata_only - only
     def show
       puts "show", params
     end
 
-    # == PUT
-    # Completes an image upload by suppliying the missing
-    # metdata for one or more previously created images.
-    #
-    # == Query Parameters:
-    #   batch_id - specifies a batch of images to update.
-    #              an image id cannot also be provided if
-    #              batch_id is given.
     def update
       key, data = validate_update_params!
       images = ImageService.upload_metadata(
@@ -48,30 +35,20 @@ module Api
       render status: 200, json: images
     end
 
-    # == PATCH
-    # Modifies the metadata of an uploaded image.
     def edit; end
 
-    # == DELETE
     def destroy
       puts "destroy", params
     end
 
-    # == POST
-    # Create a new image resource from the given image(s).
-    # This is the first phase of the upload process and it
-    # returns a url to which a PUT request will fill in the
-    # needed image metadata to complete the upload.
     def create
       puts "create", params
 
       files = validate_create_params!
-      url, tags = ImageService.upload_images(files)
+      results = ImageService.upload_images(files)
       puts ">> done uploading!"
-      puts ">> url: #{url}"
-      puts ">> tags: #{tags}"
-      response.location = url
-      render status: 201, json: { url: url, tags: tags }
+      puts ">> results: #{results}"
+      render status: 201, json: results
     end
 
     private
