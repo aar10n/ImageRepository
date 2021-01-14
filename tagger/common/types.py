@@ -77,13 +77,11 @@ class Orientation(Enum):
 #
 
 class ImageData:
-  image_id: str
   file_name: str
   content_type: str
   data: np.ndarray
 
-  def __init__(self, image_id: str, file: dict):
-    self.image_id = image_id
+  def __init__(self, file: dict):
     self.file_name = file['filename']
     self.content_type = file['content_type']
 

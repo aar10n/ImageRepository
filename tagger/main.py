@@ -31,9 +31,8 @@ class RequestHandler(tornado.web.RequestHandler):
   # private methods
 
   def __validate_post_args(self) -> Optional[ImageData]:
-    image_id = self.request.body_arguments.get('id')
     files = self.request.files.get('file')
-    if image_id is None or files is None or len(files) != 1:
+    if files is None or len(files) != 1:
       self.set_status(400)
       return None
 
@@ -42,7 +41,7 @@ class RequestHandler(tornado.web.RequestHandler):
       self.set_status(415)
       return None
 
-    return ImageData(str(image_id), file)
+    return ImageData(file)
 
 
 if __name__ == "__main__":
