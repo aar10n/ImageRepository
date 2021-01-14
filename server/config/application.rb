@@ -35,7 +35,7 @@ module Server
     config.middleware.use ErrorMiddleware
 
     config.after_initialize do
-      $image_dir = File.expand_path(ENV["IMAGE_DIR"], __dir__)
+      $image_dir = File.expand_path(ENV["IMAGE_DIR"], Rails.root)
       FileUtils.mkdir_p($image_dir) unless File.directory?($image_dir)
     end
   end
