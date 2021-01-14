@@ -2,40 +2,24 @@ ALLOWED_MIME_TYPES = %w[image/gif image/jpeg image/png image/webp]
 
 module Api
   class ImagesController < ApplicationController
-    # == GET
-    # Returns a list of images.
-    #
-    # == Query Parameters:
-    #   page - specifies the page of results to return.
-    #   page_size - specifies how many items are returned per page.
     def index
       render status: 200
-      page, page_size = validate_index_params!
-      images = ImageService.fetch_images(page, page_size)
-      puts ">> images"
-      puts images
+      # page, page_size = validate_index_params!
+      # images = ImageService.fetch_images(page, page_size)
+      # puts ">> images"
+      # puts images
 
-      render status: 200, json: images
+      # render status: 200, json: images
     end
 
     def show
-      puts "show", params
+      image = Image.find_by(shortlink: params[:id])
+      render status: 200, json: image
     end
 
     def update
-      key, data = validate_update_params!
-      images = ImageService.upload_metadata(
-        params[key].to_s,
-        data,
-        is_batch: key == :batch_id
-      )
-
-      # unwrap the array for the single item case
-      images = images[0] if key == :id
-      render status: 200, json: images
+      puts "update", params
     end
-
-    def edit; end
 
     def destroy
       puts "destroy", params
@@ -73,25 +57,11 @@ module Api
     end
 
     # update parameter validation
-    def validate_update_params!
-      keys = %i[id batch_id].filter { |s| params.key?(s) }
-      raise HttpError, 400 unless keys.length == 1
-
-      data = JSON.parse(request.body.read, symbolize_keys: true)
-
-      if params.key?(:id)
-        validate_metadata! data
-        [keys[0], [data]]
-      elsif params.key?(:batch_id)
-        validate_metadata_array! data
-        [keys[0], data]
-      end
-    end
-
     def validate_metadata!(obj)
       valid_metadata = Utils.validator do
         optional do
           only do
+            key :title, is: String
             key :description, is: String
             key :private, is: union(TrueClass, FalseClass)
             key :tags, is: array(of: String)

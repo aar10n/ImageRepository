@@ -1,16 +1,10 @@
 class Image < ApplicationRecord
   self.implicit_order_column = :created_at
-  has_many :tags
+  has_many :tags, dependent: :delete_all
 
+  # callbacks
   after_initialize :default_values
-  def default_values
-    self.width ||= nil
-    self.height ||= nil
-    self.orientation ||= nil
-    self.title ||= nil
-    self.description ||= nil
-    self.private ||= false
-  end
+  after_destroy :delete_file
 
   # @return [Array<Tag>]
   def keywords
@@ -39,5 +33,22 @@ class Image < ApplicationRecord
       created_at: created_at,
       updated_at: updated_at
     }
+  end
+
+  private
+
+  def default_values
+    self.width ||= nil
+    self.height ||= nil
+    self.orientation ||= nil
+    self.title ||= nil
+    self.description ||= nil
+    self.private ||= false
+  end
+
+  def delete_file
+    name = shortlink + File.extname(file_name)
+    path = File.join($image_dir, name)
+    File.delete(path)
   end
 end

@@ -16,10 +16,8 @@ class Tag < ApplicationRecord
     end
   end
 
+  # callbacks
   after_initialize :default_values
-  def default_values
-    self.count ||= nil
-  end
 
   # @return [String]
   def as_json(_options = nil)
@@ -34,6 +32,12 @@ class Tag < ApplicationRecord
       value: value,
       count: count
     }
+  end
+
+  private
+
+  def default_values
+    self.count ||= nil
   end
 end
 
