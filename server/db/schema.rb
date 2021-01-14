@@ -42,18 +42,5 @@ ActiveRecord::Schema.define(version: 2020_12_23_203412) do
     t.index ["image_id"], name: "index_tags_on_image_id"
   end
 
-  create_table "uploads", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "image_id", null: false
-    t.uuid "batch_id"
-    t.binary "data"
-    t.string "url"
-    t.boolean "completed"
-    t.datetime "expires"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["image_id"], name: "index_uploads_on_image_id"
-  end
-
   add_foreign_key "tags", "images"
-  add_foreign_key "uploads", "images"
 end
