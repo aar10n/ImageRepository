@@ -115,7 +115,6 @@ module Api
       valid_metadata = Utils.validator do
         optional do
           only do
-            key :title, is: String
             key :description, is: String
             key :private, is: union(TrueClass, FalseClass)
             key :tags, is: array(of: String)

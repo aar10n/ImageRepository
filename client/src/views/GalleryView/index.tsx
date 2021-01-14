@@ -4,6 +4,7 @@ import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import { debounce, generateRandomImages, range } from 'core/utils';
 import { LayoutEngine, Orientation } from 'core/LayoutEngine';
 import { tuple } from 'core/types';
+
 interface ServerImage {
   url: string;
   width: number;
@@ -125,9 +126,6 @@ export const Gallery = () => {
           stretchPenalty: 0,
         },
       });
-
-      // @ts-ignore
-      window.engine = layoutEngine;
 
       setImages(images);
       setEngine(layoutEngine);

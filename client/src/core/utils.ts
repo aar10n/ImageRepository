@@ -41,6 +41,20 @@ export const last = <T>(array: Maybe<T[]>): Maybe<T> => {
   return array[array.length - 1];
 };
 
+export const index = <T>(array: Maybe<T[]>, i: number): Maybe<T> => {
+  if (!array || array.length === 0) {
+    return undefined;
+  }
+
+  if (i < 0) {
+    i = array.length + i;
+  }
+
+  if (i < 0) return undefined;
+  if (i > array.length - 1) return undefined;
+  return array[i];
+};
+
 export const range = (s: number, e?: number, step?: number): number[] => {
   if (e && e <= s) throw new RangeError();
   if (step && step <= 0) throw new RangeError();
@@ -49,7 +63,6 @@ export const range = (s: number, e?: number, step?: number): number[] => {
   const end = e === undefined ? s : e;
   const stepSize = step || 1;
   const len = Math.floor((end - start) / stepSize);
-  console.log('range', start, end, stepSize, len);
   return Array(len)
     .fill(0)
     .map((_, index) => start + index * stepSize);
@@ -87,7 +100,7 @@ interface ImagesResponse {
 }
 
 export const generateRandomImages = async (count: number, seed?: string) => {
-  let url = `http://localhost:8000?count=${count}`;
+  let url = `http://localhost:1234?count=${count}`;
   if (seed) {
     url += `;seed=${seed}`;
   }
