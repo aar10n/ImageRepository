@@ -7,7 +7,7 @@ task :reset do
     Rake::Task[t].execute
   end
 
-  Tag.__elasticsearch__.delete_index!
+  # Tag.__elasticsearch__.delete_index!
 
   path = File.expand_path(ENV["IMAGE_DIR"], Rails.root)
   puts "Deleting #{path}"

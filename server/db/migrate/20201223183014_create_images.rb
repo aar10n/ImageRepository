@@ -1,7 +1,7 @@
 class CreateImages < ActiveRecord::Migration[6.1]
   def change
-    create_table :images, id: :uuid do |t|
-      t.string :shortlink
+    create_table :images, id: false do |t|
+      t.string :id, primary_key: true, null: false, unique: true
       t.string :file_name
       t.integer :file_size
       t.string :mime_type

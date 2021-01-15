@@ -13,11 +13,9 @@
 ActiveRecord::Schema.define(version: 2020_12_23_203412) do
 
   # These are extensions that must be enabled in order to support this database
-  enable_extension "pgcrypto"
   enable_extension "plpgsql"
 
-  create_table "images", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "shortlink"
+  create_table "images", id: :string, force: :cascade do |t|
     t.string "file_name"
     t.integer "file_size"
     t.string "mime_type"
@@ -33,8 +31,8 @@ ActiveRecord::Schema.define(version: 2020_12_23_203412) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
-  create_table "tags", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "image_id", null: false
+  create_table "tags", force: :cascade do |t|
+    t.string "image_id", null: false
     t.string "kind"
     t.string "value"
     t.integer "count"
@@ -43,5 +41,4 @@ ActiveRecord::Schema.define(version: 2020_12_23_203412) do
     t.index ["image_id"], name: "index_tags_on_image_id"
   end
 
-  add_foreign_key "tags", "images"
 end

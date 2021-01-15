@@ -33,12 +33,12 @@ module Api
 
       images = ImageService.upload_images(files)
       images = images.first if single
-      render status: 201, json: images
+      render status: 201, json: images.as_json(with_secret: true)
     end
 
     # GET /api/images/:id
     def show
-      image = Image.find_by(shortlink: params[:id])
+      image = Image.find(params[:id])
       render status: 200, json: image
     end
 
@@ -55,7 +55,7 @@ module Api
     #   tags        | string[] | Keywords associated with the image
     def update
       attributes = validate_update!
-      Image.where(shortlink: params[:id]).update_all(attributes)
+      Image.find(params[:id]).update(attributes)
       render status: 200
     end
 
@@ -64,7 +64,7 @@ module Api
     # Headers:
     #   Authorization | Basic Auth | 'Owner {secret key}'
     def destroy
-      Image.delete_by(shortlink: params[:id])
+      Image.find(params[:id]).destroy
       render status: 200
     end
 
@@ -76,7 +76,7 @@ module Api
 
     # index parameter validation
     def validate_index!
-      valid_params = Utils.validator do
+      validator = Utils.validator do
         optional do
           key :page, is: integer?
           key :page_size, is: integer?
@@ -84,14 +84,14 @@ module Api
       end
 
       options = request.query_parameters
-      raise HttpError, 400 unless valid_params.call(options)
+      raise HttpError, 400 unless validator.call(options)
 
-      [options[:page]&.to_i, options[:page_size]&.to_i]
+      [options[:page]&.to_i || 1, options[:page_size]&.to_i || 20]
     end
 
     # create parameter validation
     def validate_create!
-      validate_image = proc do |obj|
+      validator = proc do |obj|
         raise HttpError, 400 unless obj.is_a? ActionDispatch::Http::UploadedFile
         raise HttpError, 415 unless obj.content_type.in? ALLOWED_MIME_TYPES
       end
@@ -100,10 +100,10 @@ module Api
       raise HttpError, 400 unless keys.length == 1
 
       if params.key?(:file)
-        validate_image.call(params[:file])
+        validator.call(params[:file])
       elsif params.key?(:files)
         raise HttpError, 400 unless obj.is_a? Array
-        obj.each { |o| validate_image.call(o) }
+        obj.each { |o| validator.call(o) }
       end
 
       params[keys[0]]
@@ -111,7 +111,7 @@ module Api
 
     # update parameter validation
     def validate_update!
-      valid_metadata = Utils.validator do
+      validator = Utils.validator do
         optional do
           only do
             key :title, is: String
@@ -123,7 +123,7 @@ module Api
       end
 
       body = JSON.parse(request.raw_post)
-      raise HttpError, 400 unless valid_metadata.call(body)
+      raise HttpError, 400 unless validator.call(body)
       body
     end
   end

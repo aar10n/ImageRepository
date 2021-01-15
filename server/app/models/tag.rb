@@ -5,11 +5,12 @@ class Tag < ApplicationRecord
   include Elasticsearch::Model::Callbacks
   belongs_to :image
 
+  after_destroy :update_index
+  validates_uniqueness_of :value, scope: :kind
+
   settings number_of_shards: 1 do
     mapping dynamic: false do
-      indexes :image do
-        indexes :id, type: :text
-      end
+      indexes :image, type: :text
       indexes :kind, type: :text
       indexes :value, type: :text, analyzer: "english"
       indexes :count, type: :integer
@@ -27,7 +28,7 @@ class Tag < ApplicationRecord
   # @return [Hash]
   def as_indexed_json(_options = nil)
     {
-      image: { id: image.id },
+      image: image.id,
       kind: kind,
       value: value,
       count: count
@@ -38,6 +39,10 @@ class Tag < ApplicationRecord
 
   def default_values
     self.count ||= nil
+  end
+
+  def update_index
+    # __elasticsearch__.
   end
 end
 

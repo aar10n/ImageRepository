@@ -36,6 +36,10 @@ module Server
 
     config.after_initialize do
       $image_dir = File.expand_path(ENV["IMAGE_DIR"], Rails.root)
+      $id_length = ENV["ID_LENGTH"].to_i
+      $secret_length = ENV["SECRET_LENGTH"].to_i
+      $publish_delay = ENV["PUBLISH_DELAY"].to_i
+
       FileUtils.mkdir_p($image_dir) unless File.directory?($image_dir)
     end
   end

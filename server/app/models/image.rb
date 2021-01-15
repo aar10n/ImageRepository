@@ -1,14 +1,14 @@
 class Image < ApplicationRecord
+  has_many :tags, dependent: :destroy
   self.implicit_order_column = :created_at
-  has_many :tags, dependent: :delete_all
 
   # callbacks
   after_initialize :default_values
-  after_destroy :delete_file
+  before_destroy :delete_file
 
   # @return [Array<Tag>]
   def keywords
-    tags.where(kind: %w[keyword feature]).to_a
+    tags.where(kind: "keyword").to_a
   end
 
   # @return [Image]
@@ -20,7 +20,7 @@ class Image < ApplicationRecord
   def as_json(options = nil)
     options[:with_secret] ||= false
     json = {
-      id: shortlink,
+      id: id,
       name: file_name,
       type: mime_type,
       size: file_size,
@@ -36,26 +36,25 @@ class Image < ApplicationRecord
       updated_at: updated_at
     }
 
-    if options[:with_secret]
-      json
-    else
-      json.without(:secret)
-    end
+    options[:with_secret] ? json : json.without(:secret)
   end
 
   private
 
   def default_values
+    self.id ||= SecureRandom.alphanumeric($id_length)
     self.width ||= nil
     self.height ||= nil
     self.orientation ||= nil
     self.title ||= nil
     self.description ||= nil
     self.private ||= false
+    self.published_at ||= Time.now + $publish_delay
+    self.secret ||= SecureRandom.hex($secret_length)
   end
 
   def delete_file
-    name = shortlink + File.extname(file_name)
+    name = id + File.extname(file_name)
     path = File.join($image_dir, name)
     File.delete(path)
   end

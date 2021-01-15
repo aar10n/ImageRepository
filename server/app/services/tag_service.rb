@@ -26,21 +26,18 @@ module TagService
       orientation: res[:orientation]
     }
     image.update(params)
-    image.tags.create(res[:tags].map { |tag| make_tag_obj(tag) })
+
+    tags = res[:tags].map { |tag| make_tag_obj(tag) }.flatten
+    image.tags.create(tags)
   end
 
   # @param image [Image]
   # @param keywords [Array<String>]
-  def self.add_keywords(image, keywords)
+  def self.add_tags(image, keywords)
     return if keywords.length.zero?
 
     tags = keywords.map do |keyword|
-      {
-        image_id: image.id,
-        kind: "keyword",
-        value: keyword,
-        count: nil
-      }
+      { kind: "keyword", value: keyword }
     end
 
     image.tags.create(tags)
@@ -55,7 +52,7 @@ module TagService
   end
 
   # @param obj [Hash] Tag object.
-  # @return [Hash]
+  # @return [Hash, Array<Hash>]
   def self.make_tag_obj(obj)
     kind = obj[:type]
     value = obj[:value]
@@ -63,8 +60,13 @@ module TagService
     if kind == "feature"
       value = obj[:value][0]
       count = obj[:value][1]
-    end
 
-    { kind: kind, value: value, count: count }
+      [
+        { kind: "feature", value: value, count: count },
+        { kind: "keyword", value: value, count: nil }
+      ]
+    else
+      { kind: kind, value: value, count: count }
+    end
   end
 end

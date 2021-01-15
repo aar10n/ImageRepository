@@ -33,7 +33,7 @@ module Authenticated
   end
 
   module ClassMethods
-    def authorize(*actions, model: Image, attr: :shortlink, using: :id)
+    def authorize(*actions, model: Image, attr: :id, using: :id)
       class_variable_set(:@@_auth_actions, actions)
       class_variable_set(:@@_auth_model, model)
       class_variable_set(:@@_auth_attr, attr)
