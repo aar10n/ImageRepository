@@ -10,6 +10,7 @@ class CreateImages < ActiveRecord::Migration[6.1]
       t.string :orientation
       t.string :title
       t.string :description
+      t.string :secret
       t.boolean :private
       t.datetime :published_at
       t.timestamps

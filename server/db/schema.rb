@@ -26,6 +26,7 @@ ActiveRecord::Schema.define(version: 2020_12_23_203412) do
     t.string "orientation"
     t.string "title"
     t.string "description"
+    t.string "secret"
     t.boolean "private"
     t.datetime "published_at"
     t.datetime "created_at", precision: 6, null: false

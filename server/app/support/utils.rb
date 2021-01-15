@@ -5,8 +5,9 @@ module Utils
   # @param auth [String]
   # @return [Hash]
   def self.decode_auth(auth)
+    return {} if auth.nil?
     type, creds = auth.split(" ")
-    user, pass = Base64.decode64(creds).split(':')
+    user, pass = Base64.decode64(creds).split(":")
     { type: type, user: user, pass: pass }
   end
 

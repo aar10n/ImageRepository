@@ -17,8 +17,9 @@ class Image < ApplicationRecord
   end
 
   # @return [Hash]
-  def as_json(_options = nil)
-    {
+  def as_json(options = nil)
+    options[:with_secret] ||= false
+    json = {
       id: shortlink,
       name: file_name,
       type: mime_type,
@@ -28,11 +29,18 @@ class Image < ApplicationRecord
       orientation: orientation,
       title: title,
       description: description,
-      tags: keywords.as_json,
       private: private,
+      secret: secret,
+      tags: keywords.as_json,
       created_at: created_at,
       updated_at: updated_at
     }
+
+    if options[:with_secret]
+      json
+    else
+      json.without(:secret)
+    end
   end
 
   private
