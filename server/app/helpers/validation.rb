@@ -1,13 +1,6 @@
-ANY = proc { true }
-NONE = proc { false }
-
 module Validation
-  # Creates a new validator from the block.
-  # @return [Proc] A validator function that takes an object
-  #                and returns true or false.
-  def self.validator(&block)
-    ValidatorBuilder.new(&block).build
-  end
+  ANY = proc { true }
+  NONE = proc { false }
 
   # A builders class that constructs an object validator function
   # from a DSL like syntax.
@@ -266,7 +259,7 @@ module Validation
     def in?(*values)
       if !values.nil?
         values = values[0] if values.length == 1 and values[0].is_a? Array
-        ->(o) { values.map { |l| wrap(l, ->(a, b) { a == b}).call(o) }.any? }
+        ->(o) { values.map { |l| wrap(l, ->(a, b) { a == b }).call(o) }.any? }
       else
         ANY
       end
@@ -333,5 +326,12 @@ module Validation
         ->(o) { o.is_a? arg }
       end
     end
+  end
+
+  # Creates a new validator from the block.
+  # @return [Proc] A validator function that takes an object
+  #                and returns true or false.
+  def self.validator(&block)
+    ValidatorBuilder.new(&block).build
   end
 end
