@@ -5,24 +5,34 @@ ALLOWED_COLORS = %w[
   aqua azure blue purple orchid magenta
 ]
 
-
 module Api
   class SearchController < ApplicationController
     # GET /search
     def index
       puts "index"
-      search_params = validate_search_params!
-      puts search_params
+      options = validate_search!
+      puts options
       render status: 200
     end
 
     # GET /search/:query
+    #
+    # Parameters:
+    #   color       | string  | Filter by a particular color theme.
+    #   people      | boolean | Filter for images with people.
+    #   num_people  | number  | Specify the number of people the look for.
+    #   min_height  | number  | Minimum image width in pixels
+    #   min_width   | number  | Minimum image height in pixels
+    #   orientation | string  | Filter by image orientation:
+    #                             "portrait", "landscape" or "square"
     def show
       puts "show"
       puts params[:query]
-      puts CGI.unescape(params[:query])
-      search_params = validate_search_params!
-      puts search_params
+
+      query = CGI.unescape(params[:query])
+      puts query
+      options = validate_search!
+      puts options
       render status: 200
     end
 
@@ -33,21 +43,20 @@ module Api
     #
 
     # search parameter validation
-    def validate_search_params!
-      valid_params = Utils.validator do
+    def validate_search!
+      valid_params = Validation.validator do
         optional do
+          key :color, is: in?(ALLOWED_COLORS)
+          key :people, is: boolean?
+          key :num_people, is: integer?
           key :min_height, is: integer?
           key :min_width, is: integer?
-          key :num_people, is: integer?
-          key :people, is: boolean?
-          key :color, is: in?(ALLOWED_COLORS)
           key :orientation, is: in?(ALLOWED_ORIENTATIONS)
         end
       end
 
       params = Utils.symbolize(request.query_parameters)
 
-      puts "valid = #{valid_params.call(params)}"
       raise HttpError, 400 unless valid_params.call(params)
       {
         min_height: params.fetch(:min_height, "-1").to_i,

@@ -1,4 +1,4 @@
-AUTH_VALIDATOR = Utils.validator do
+AUTH_VALIDATOR = Validation.validator do
   key :type, is: value?("Basic")
   key :user, is: value?("Owner")
   key :pass, is: String

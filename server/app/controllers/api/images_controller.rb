@@ -76,7 +76,7 @@ module Api
 
     # index parameter validation
     def validate_index!
-      validator = Utils.validator do
+      validator = Validation.validator do
         optional do
           key :page, is: integer?
           key :page_size, is: integer?
@@ -111,7 +111,7 @@ module Api
 
     # update parameter validation
     def validate_update!
-      validator = Utils.validator do
+      validator = Validation.validator do
         optional do
           only do
             key :title, is: String

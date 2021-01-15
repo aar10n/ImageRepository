@@ -1,28 +1,7 @@
 ANY = proc { true }
 NONE = proc { false }
 
-module Utils
-  # @param auth [String]
-  # @return [Hash]
-  def self.decode_auth(auth)
-    return {} if auth.nil?
-    type, creds = auth.split(" ")
-    user, pass = Base64.decode64(creds).split(":")
-    { type: type, user: user, pass: pass }
-  end
-
-  # @param obj [Array, Hash]
-  def self.symbolize(obj)
-    case obj
-    when Array
-      obj.map { |e| Utils.symbolize(e) }
-    when Hash
-      obj.symbolize_keys
-    else
-      raise RuntimeError
-    end
-  end
-
+module Validation
   # Creates a new validator from the block.
   # @return [Proc] A validator function that takes an object
   #                and returns true or false.
@@ -30,7 +9,7 @@ module Utils
     ValidatorBuilder.new(&block).build
   end
 
-  # A builder class that constructs an object validator function
+  # A builders class that constructs an object validator function
   # from a DSL like syntax.
   class ValidatorBuilder
     attr_accessor :keys, :validators
@@ -52,7 +31,7 @@ module Utils
 
     # @return [Proc] The validator function.
     def build
-      lambda do |obj|
+      proc do |obj|
         if @validators.length.zero?
           true
         else

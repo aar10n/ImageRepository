@@ -36,7 +36,7 @@ module Api
 
     # create parameter validation
     def validate_create!
-      validator = Utils.validator do
+      validator = Validation.validator do
         is array?(of: String)
       end
 
