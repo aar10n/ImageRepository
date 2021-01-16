@@ -1,11 +1,5 @@
 import { copy, reverse, zip } from 'core/utils';
-import { tuple } from 'core/types';
-
-export enum Orientation {
-  Landscape = 'landscape',
-  Portrait = 'portrait',
-  Square = 'square',
-}
+import { tuple, Orientation } from 'core/types';
 
 export interface LayoutItem {
   width: number;
