@@ -1,8 +1,12 @@
+# A simple http server that serves random
+# images from a given folder. Useful for
+# debugging.
 import http.server
 import random
 import string
 import sys
 import os
+
 
 def seed():
   chars = string.ascii_letters
@@ -10,6 +14,7 @@ def seed():
   for _ in range(6):
     output += random.choice(chars)
   return output
+
 
 class RequestHandler(http.server.SimpleHTTPRequestHandler):
   def __init__(self, *args, directory=None, **kwargs):

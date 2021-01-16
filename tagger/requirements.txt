@@ -5,3 +5,4 @@ Pillow==8.0.1
 torch==1.7.1
 torchvision==0.8.2
 tornado==6.1
+requests==2.25.1

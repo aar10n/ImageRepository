@@ -92,6 +92,7 @@ module Api
     # create parameter validation
     def validate_create!
       validator = proc do |obj|
+        puts ">> content_type: #{obj.content_type}"
         raise HttpError, 400 unless obj.is_a? ActionDispatch::Http::UploadedFile
         raise HttpError, 415 unless obj.content_type.in? ALLOWED_MIME_TYPES
       end
@@ -102,6 +103,7 @@ module Api
       if params.key?(:file)
         validator.call(params[:file])
       elsif params.key?(:files)
+        obj = params[:files]
         raise HttpError, 400 unless obj.is_a? Array
         obj.each { |o| validator.call(o) }
       end
