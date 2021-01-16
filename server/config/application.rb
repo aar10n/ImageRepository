@@ -36,6 +36,7 @@ module Server
     config.middleware.use ErrorMiddleware
 
     config.after_initialize do
+      $base_url = ENV["BASE_URL"]
       $image_dir = File.expand_path(ENV["IMAGE_DIR"], Rails.root)
       $id_length = ENV["ID_LENGTH"].to_i
       $secret_length = ENV["SECRET_LENGTH"].to_i

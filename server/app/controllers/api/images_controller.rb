@@ -10,6 +10,7 @@ module Api
     # Parameters:
     #   page      | number | The page of images to get
     #   page_size | number | The number of images per page
+    #   sort      | string | The sort order: "asc" or "dsc"
     def index
       page, page_size = validate_index!
       offset = (page - 1) * page_size
@@ -92,7 +93,6 @@ module Api
     # create parameter validation
     def validate_create!
       validator = proc do |obj|
-        puts ">> content_type: #{obj.content_type}"
         raise HttpError, 400 unless obj.is_a? ActionDispatch::Http::UploadedFile
         raise HttpError, 415 unless obj.content_type.in? ALLOWED_MIME_TYPES
       end

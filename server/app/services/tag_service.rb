@@ -6,11 +6,11 @@ TAGGER_URL = "http://localhost/api/tagger"
 module TagService
   # Generates tags for an image using the tagger server
   # and then creates new +Tag+ records for each result.
-  # @param image [Image] The image active record.
+  # @param file_name [String] The image file name
   # @param data [String] The image data.
-  # @return [Array<Tag>] The created +Tag+ records.
-  def self.tag_image(image, data)
-    file = Curl::PostField.file("file", image.file_name) do |field|
+  # @return [Hash] Image information
+  def self.tag_image(file_name, data)
+    file = Curl::PostField.file("file", file_name) do |field|
       field.content = data
     end
 
@@ -20,15 +20,12 @@ module TagService
     raise HttpError, c.response_code unless c.response_code == 200
     res = JSON.parse(c.body_str, symbolize_names: true)
 
-    params = {
+    {
       width: res[:width],
       height: res[:height],
-      orientation: res[:orientation]
+      orientation: res[:orientation],
+      tags: res[:tags].map { |tag| make_tag_obj(tag) }.flatten
     }
-    image.update(params)
-
-    tags = res[:tags].map { |tag| make_tag_obj(tag) }.flatten
-    image.tags.create(tags)
   end
 
   # @param image [Image]

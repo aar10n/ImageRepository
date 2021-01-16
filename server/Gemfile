@@ -30,3 +30,5 @@ gem "elasticsearch-rails", "~> 7.1"
 gem "whenever", require: false
 
 gem "curb", "~> 0.9.11"
+
+gem "image_size", "~> 2.1"

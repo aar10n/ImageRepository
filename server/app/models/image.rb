@@ -1,10 +1,16 @@
 class Image < ApplicationRecord
   has_many :tags, dependent: :destroy
   self.implicit_order_column = :created_at
+  default_scope { order(created_at: :desc) }
 
   # callbacks
   after_initialize :default_values
   before_destroy :delete_file
+
+  # @return [String]
+  def url
+    File.join($base_url, "/images/#{id}#{File.extname(file_name)}")
+  end
 
   # @return [Array<Tag>]
   def keywords
@@ -30,6 +36,7 @@ class Image < ApplicationRecord
       title: title,
       description: description,
       private: private,
+      url: url,
       secret: secret,
       tags: keywords.as_json,
       created_at: created_at,
@@ -40,6 +47,10 @@ class Image < ApplicationRecord
   end
 
   private
+
+  def create_tags
+    puts ">>> tags: #{tags}"
+  end
 
   def default_values
     self.id ||= SecureRandom.alphanumeric($id_length)
