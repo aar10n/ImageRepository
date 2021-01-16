@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import RestService from 'core/RestService';
 
 import { Gradient } from 'views/UploadView/Gradient';
-import { Progress } from 'views/UploadView/Progress';
+import { Loading } from 'views/UploadView/Loading';
 import { index } from 'core/utils';
 
 export type DragState = 'dragenter' | 'dragover' | 'dragleave' | 'drop';
@@ -57,7 +57,8 @@ export const UploadView = () => {
   const [dragState, setDragState] = useState<DragState>();
   const [elemStack, setElemStack] = useState<HTMLElement[]>([]);
   const [showProgress, setShowProgress] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [complete, setComplete] = useState(false);
+  const [files, setFiles] = useState<FileList>();
   const classes = useStyles();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,27 +91,24 @@ export const UploadView = () => {
     }
   };
 
-  const handleProgressUpdate = (event: ProgressEvent) => {
-    const { loaded, total } = event;
-    const percent = Math.round((loaded * 100) / total);
-    setProgress(percent);
-  };
-
   const handleUpload = async (files: FileList) => {
     if (files.length === 0) {
       return;
     }
 
+    setFiles(files);
     setShowProgress(true);
-    const res = await RestService.uploadImages(files, handleProgressUpdate);
+    const res = await RestService.uploadImages(files);
+
     console.log(res);
+    setComplete(true);
   };
 
   return (
     <div className={classes.container}>
       {showProgress ? (
         <div className={classes.progressArea}>
-          <Progress percent={progress} />
+          <Loading numFiles={files?.length} complete={complete} />
         </div>
       ) : (
         <div

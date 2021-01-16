@@ -14,9 +14,11 @@ export default class RestService {
 
   public static async editImage(
     id: string,
-    secret: string,
+    secret: string | null,
     info: ImageInfo
   ): Promise<Image> {
+    if (!secret) throw new Error('Unauthorized');
+
     const url = `${baseUrl}/api/images/${id}`;
     const res = await axios.patch<Image>(url, info, {
       headers: this.makeAuthHeader(secret),
@@ -24,7 +26,11 @@ export default class RestService {
     return res.data;
   }
 
-  public static async deleteImage(id: string, secret: string): Promise<void> {
+  public static async deleteImage(
+    id: string,
+    secret: string | null
+  ): Promise<void> {
+    if (!secret) throw new Error('Unauthorized');
     const url = `${baseUrl}/api/images/${id}`;
     await axios.delete(url, {
       headers: this.makeAuthHeader(secret),
@@ -68,9 +74,10 @@ export default class RestService {
 
   public static async deleteTag(
     id: string,
-    secret: string,
+    secret: string | null,
     tag: Tag
   ): Promise<void> {
+    if (!secret) throw new Error('Unauthorized');
     const name = encodeURIComponent(tag).replace(/%20/g, '+');
     const url = `${baseUrl}/api/images/${id}/tags/${name}`;
     await axios.delete(url, {
@@ -88,9 +95,10 @@ export default class RestService {
 
   public static async addTags(
     id: string,
-    secret: string,
+    secret: string | null,
     tags: Tag[]
   ): Promise<void> {
+    if (!secret) throw new Error('Unauthorized');
     const url = `${baseUrl}/api/images/${id}/tags`;
     await axios.post(url, tags, {
       headers: this.makeAuthHeader(secret),

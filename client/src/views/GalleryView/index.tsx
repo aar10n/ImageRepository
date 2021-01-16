@@ -2,8 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 
 import { debounce, generateRandomImages, range } from 'core/utils';
-import { LayoutEngine, Orientation } from 'core/LayoutEngine';
-import { tuple } from 'core/types';
+import { LayoutEngine } from 'core/LayoutEngine';
+import { tuple, Orientation } from 'core/types';
 
 interface ServerImage {
   url: string;
