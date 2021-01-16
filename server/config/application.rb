@@ -6,6 +6,7 @@ require "active_model/railtie"
 require "active_record/railtie"
 require "action_controller/railtie"
 require "action_view/railtie"
+require 'elasticsearch/rails/instrumentation'
 
 require_relative "../lib/middleware/error_middleware"
 require_relative "../lib/mixins/string"

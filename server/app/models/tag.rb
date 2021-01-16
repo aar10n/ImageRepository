@@ -6,11 +6,27 @@ class Tag < ApplicationRecord
   belongs_to :image
 
   after_destroy :update_index
-  validates_uniqueness_of :value, scope: :kind
+  validates_uniqueness_of :image_id, scope: [:kind, :value]
+
+  # after_commit on: [:create] do
+  #   __elasticsearch__.index_document unless image.private
+  # end
+  #
+  # after_commit on: [:update] do
+  #   if image.private
+  #     __elasticsearch__.delete_document
+  #   else
+  #     __elasticsearch__.update_document
+  #   end
+  # end
+  #
+  # after_commit on: [:destroy] do
+  #   __elasticsearch__.delete_document if image.private
+  # end
 
   settings number_of_shards: 1 do
     mapping dynamic: false do
-      indexes :image, type: :text
+      indexes :image, type: :keyword
       indexes :kind, type: :text
       indexes :value, type: :text, analyzer: "english"
       indexes :count, type: :integer
@@ -42,9 +58,10 @@ class Tag < ApplicationRecord
   end
 
   def update_index
-    # __elasticsearch__.
+    __elasticsearch__.delete_document
   end
 end
 
 Tag.__elasticsearch__.create_index!
-Tag.import
+Tag.__elasticsearch__.import force: true
+Tag.__elasticsearch__.refresh_index!
