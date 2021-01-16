@@ -29,7 +29,7 @@ module Json
       value = unwrap(value)
       assert_scope Scope::OBJECT
       assert_type key, String, Symbol
-      value = block_given? ? JsonBuilder.new(&block).build : value
+      value = block_given? ? self.class.new(&block).build : value
       @value[key] = value
     end
 
@@ -38,7 +38,7 @@ module Json
     def element(value = nil, &block)
       value = unwrap(value)
       assert_scope Scope::ARRAY
-      value = block_given? ? JsonBuilder.new(&block).build : value
+      value = block_given? ? self.class.new(&block).build : value
       @value << value
     end
 
@@ -75,13 +75,13 @@ module Json
     # creates a new object
     def object(&block)
       return {} unless block_given?
-      JsonBuilder.new(scope: Scope::OBJECT, &block).build
+      self.class.new(scope: Scope::OBJECT, &block).build
     end
 
     # creates a new array
     def array(&block)
       return [] unless block_given?
-      JsonBuilder.new(scope: Scope::ARRAY, &block).build
+      self.class.new(scope: Scope::ARRAY, &block).build
     end
 
     private
@@ -127,15 +127,15 @@ module Json
   #   Wrap the result in the given root key(s).
   # @return [Hash, Array]
   def self.json(root: nil, &block)
-    wrap_result = proc do |obj|
-      return obj if root.nil?
-      return [obj] if root.is_a? Array and root.empty?
-      root = [root] unless root.is_a? Array
-      root.reverse.inject(obj) { |a, n| { n => a } }
-    end
-
-    return wrap_result.call(nil) unless block_given?
+    return wrap_result(root, nil) unless block_given?
     result = JsonBuilder.new(&block).build
-    wrap_result.call(result)
+    wrap_result(root, result)
+  end
+
+  def self.wrap_result(root, obj)
+    return obj if root.nil?
+    return [obj] if root.is_a? Array and root.empty?
+    root = [root] unless root.is_a? Array
+    root.reverse.inject(obj) { |a, n| { n => a } }
   end
 end
