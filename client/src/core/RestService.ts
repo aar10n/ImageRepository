@@ -46,7 +46,7 @@ export default class RestService {
   ): Promise<Thumbnail[]> {
     page = Math.abs(page);
     pageSize = Math.abs(pageSize);
-    const url = `${baseUrl}/api/images?thumbnail=true`;
+    const url = `${baseUrl}/api/images?thumbnails=true`;
     const res = await axios.get<Thumbnail[]>(url);
     return res.data;
   }

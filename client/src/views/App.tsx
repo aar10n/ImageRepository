@@ -8,6 +8,11 @@ import { Search } from 'views/Search';
 import { UploadView } from 'views/UploadView';
 import { ImageView } from 'views/ImageView';
 import { Toast } from 'views/Toast';
+import { useEffect, useState } from 'react';
+import { Thumbnail } from 'core/types';
+import RestService from 'core/RestService';
+import { useDispatch } from 'react-redux';
+import { getImages } from 'redux/image/actions';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -27,7 +32,19 @@ const useStyles = makeStyles(() =>
 );
 
 const App = () => {
+  const dispatch = useDispatch();
   const classes = useStyles();
+  const [images, setImages] = useState<Thumbnail[]>([]);
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      const thumbnails = (await dispatch(getImages(1))) as any;
+      console.log(thumbnails);
+      setImages(thumbnails);
+    };
+
+    fetchImages();
+  }, [dispatch]);
 
   return (
     <div className={classes.root}>
@@ -35,9 +52,7 @@ const App = () => {
       <Router>
         <Switch>
           <Route exact path="/">
-            <Link to="upload" style={{ color: 'white' }}>
-              Upload
-            </Link>
+            <Gallery images={images} />
           </Route>
 
           <Route path="/upload">

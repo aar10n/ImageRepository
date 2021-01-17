@@ -1,4 +1,4 @@
-import { ImageInfo, Tag, tuple } from 'core/types';
+import { ImageInfo, Tag, Thumbnail, tuple } from 'core/types';
 import { ActionType, Thunk } from 'redux/types';
 import {
   AddTagAction,
@@ -12,9 +12,17 @@ import {
 import RestService from 'core/RestService';
 import { getSecret } from './selectors';
 
-export const getImages = (page: number): Thunk<any> => async dispatch => {
-  const images = await RestService.getImages(page, 20);
-  return;
+export const getImages = (
+  page: number
+): Thunk<any, Thumbnail[]> => async dispatch => {
+  try {
+    dispatch(setRequestStatus('waiting'));
+    const images = await RestService.getImages(page, 20);
+    return images;
+  } catch (error) {
+    dispatch(setRequestStatus('failure'));
+  }
+  return [];
 };
 
 export const uploadImages = (files: FileList): Thunk<any> => async dispatch => {

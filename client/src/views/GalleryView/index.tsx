@@ -1,21 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 
-import { debounce, generateRandomImages, range } from 'core/utils';
+import { debounce, range } from 'core/utils';
 import { LayoutEngine } from 'core/LayoutEngine';
-import { tuple, Orientation } from 'core/types';
+import { tuple, Thumbnail } from 'core/types';
 
-interface ServerImage {
-  url: string;
-  width: number;
-  height: number;
-}
-
-interface GalleryImage {
-  url: string;
-  width: number;
-  height: number;
-  orientation: Orientation;
+interface Props {
+  images: Thumbnail[];
 }
 
 interface StylesProps {
@@ -24,7 +15,7 @@ interface StylesProps {
   gridGap: number;
 }
 
-const useStyles = makeStyles<Theme, StylesProps>(() =>
+const useStyles = makeStyles<Theme, StylesProps>(theme =>
   createStyles({
     grid: props => ({
       display: 'grid',
@@ -39,7 +30,7 @@ const useStyles = makeStyles<Theme, StylesProps>(() =>
       gap: props.gridGap,
     }),
     item: {
-      boxShadow: '2px 2px 2px 0px rgba(100, 100, 100, 0.5)',
+      boxShadow: theme.shadows[10],
       overflow: 'hidden',
       borderRadius: '10px',
       width: '100%',
@@ -69,72 +60,58 @@ const getNumColumns = () => {
   return breakpoints[width];
 };
 
-const makeGalleryImages = (images: ServerImage[]) =>
-  images.map(image => {
-    const { width, height } = image;
-    const diff = width / height - height / width;
-    const isSquare = Math.abs(diff) <= 0.1; // 10%
-    const orientation = isSquare
-      ? Orientation.Square
-      : diff < 0
-      ? Orientation.Portrait
-      : Orientation.Landscape;
-
-    return { ...image, orientation };
-  });
-
 const getStyles = (span: number): React.CSSProperties => ({
   gridColumn: `span ${span}`,
 });
 
-export const Gallery = () => {
+export const Gallery = (props: Props) => {
   const [columns, setColumns] = useState<number>(0);
-  const [images, setImages] = useState<GalleryImage[]>([]);
-  const [engine, setEngine] = useState<LayoutEngine>();
   const [spans, setSpans] = useState<number[]>([]);
   const galleryRef = useRef<HTMLDivElement>(null);
+  const layoutEngine = useRef<LayoutEngine>();
+  const { images } = props;
+
   const classes = useStyles({
     numColumns: columns,
     rowHeight: 300,
     gridGap: 8,
   });
 
+  useEffect(() => {
+    if (images.length === 0) return;
+
+    const engine = new LayoutEngine(images, {
+      portrait: {
+        width: 2,
+        minWidth: 2,
+        maxWidth: 3,
+        shrinkPenalty: 1000,
+        stretchPenalty: 300,
+      },
+      square: {
+        width: 3,
+        minWidth: 3,
+        maxWidth: 4,
+        shrinkPenalty: 500,
+        stretchPenalty: 500,
+      },
+      landscape: {
+        width: 4,
+        minWidth: 3,
+        maxWidth: 6,
+        shrinkPenalty: 200,
+        stretchPenalty: 0,
+      },
+    });
+
+    layoutEngine.current = engine;
+  }, [images]);
+
   // runs once on render
   useEffect(() => {
-    const fetchImages = async () => {
-      const images = makeGalleryImages(await generateRandomImages(20));
-      const layoutEngine = new LayoutEngine(images, {
-        portrait: {
-          width: 2,
-          minWidth: 2,
-          maxWidth: 3,
-          shrinkPenalty: 1000,
-          stretchPenalty: 300,
-        },
-        square: {
-          width: 3,
-          minWidth: 3,
-          maxWidth: 4,
-          shrinkPenalty: 500,
-          stretchPenalty: 500,
-        },
-        landscape: {
-          width: 4,
-          minWidth: 3,
-          maxWidth: 6,
-          shrinkPenalty: 200,
-          stretchPenalty: 0,
-        },
-      });
-
-      setImages(images);
-      setEngine(layoutEngine);
-      setColumns(getNumColumns());
-    };
-
+    setColumns(getNumColumns());
     const resizeListener = debounce(() => setColumns(getNumColumns()), 200);
     window.addEventListener('resize', resizeListener);
-    fetchImages();
 
     return () => {
       window.removeEventListener('resize', resizeListener);
@@ -143,13 +120,10 @@ export const Gallery = () => {
 
   // runs whenever the number of grid columns changes
   useEffect(() => {
-    if (columns === 0 || !engine) {
-      return;
-    }
-
-    const widths = engine.layout(columns);
+    if (columns === 0 || !layoutEngine.current) return;
+    const widths = layoutEngine.current.layout(columns);
     setSpans(widths);
-  }, [columns, images, engine]);
+  }, [columns]);
 
   return (
     <div id="gallery" ref={galleryRef} className={classes.grid}>

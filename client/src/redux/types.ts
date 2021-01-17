@@ -30,10 +30,10 @@ export interface BaseAction<A extends ActionType> {
 
 export type SafeReducer<S, A extends AnyAction> = (state: S, action: A) => S;
 
-export type Thunk<T extends BaseAction<any>> = (
-  dispatch: ThunkDispatch<AppState, void, T>,
+export type Thunk<T extends BaseAction<any>, E = void> = (
+  dispatch: ThunkDispatch<AppState, E, T>,
   getState?: () => AppState
-) => void | Promise<void>;
+) => E | Promise<E>;
 
 export type ActionTypeMap<T extends BaseAction<any>> = {
   [K in T['type']]: Extract<T, { type: K }>;
