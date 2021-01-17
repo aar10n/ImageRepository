@@ -6,6 +6,8 @@ import { Gallery } from 'views/GalleryView';
 import { Filter } from 'views/FilterView';
 import { Search } from 'views/Search';
 import { UploadView } from 'views/UploadView';
+import { ImageView } from 'views/ImageView';
+import { Toast } from 'views/Toast';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -26,6 +28,7 @@ const useStyles = makeStyles(() =>
 
 const App = () => {
   const classes = useStyles();
+
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -37,7 +40,12 @@ const App = () => {
           <Route path="/upload">
             <UploadView />
           </Route>
+          <Route path="/i/:id">
+            <ImageView />
+          </Route>
         </Switch>
+
+        <Toast timeout={-1} />
       </Router>
     </div>
   );

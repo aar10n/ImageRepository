@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
-import RestService from 'core/RestService';
+import { useHistory } from 'react-router';
 
 import { Gradient } from 'views/UploadView/Gradient';
 import { Loading } from 'views/UploadView/Loading';
 import { index } from 'core/utils';
+import { useDispatch, useSelector } from 'react-redux';
+import { uploadImages } from 'redux/image/actions';
+import { getCurrent, getUploadStatus } from 'redux/image/selectors';
 
 export type DragState = 'dragenter' | 'dragover' | 'dragleave' | 'drop';
 
@@ -19,7 +22,7 @@ const useStyles = makeStyles(() =>
       height: '100%',
       color: 'white',
       fontSize: '16px',
-      fontFamily: 'Helvetica Neue',
+      fontFamily: 'Helvetica Neue, Arial',
     },
     dropBox: {
       width: '264px',
@@ -56,10 +59,11 @@ const useStyles = makeStyles(() =>
 export const UploadView = () => {
   const [dragState, setDragState] = useState<DragState>();
   const [elemStack, setElemStack] = useState<HTMLElement[]>([]);
-  const [showProgress, setShowProgress] = useState(false);
-  const [complete, setComplete] = useState(false);
-  const [files, setFiles] = useState<FileList>();
+  const uploadStatus = useSelector(getUploadStatus);
+  const current = useSelector(getCurrent);
+  const dispatch = useDispatch();
   const classes = useStyles();
+  const history = useHistory();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -92,25 +96,26 @@ export const UploadView = () => {
   };
 
   const handleUpload = async (files: FileList) => {
-    if (files.length === 0) {
-      return;
-    }
-
-    setFiles(files);
-    setShowProgress(true);
-    const res = await RestService.uploadImages(files);
-
-    console.log(res);
-    setComplete(true);
+    if (files.length === 0) return;
+    await dispatch(uploadImages(files));
   };
+
+  useEffect(() => {
+    if (!current) return;
+    history.push(`/i/${current.id}`);
+  }, [current, history]);
+
+  useEffect(() => {
+    if (uploadStatus === 'success') {
+      history.push(`/i/${current?.id}`);
+    } else if (uploadStatus === 'failure') {
+      history.push(`/`);
+    }
+  }, [uploadStatus, current, history]);
 
   return (
     <div className={classes.container}>
-      {showProgress ? (
-        <div className={classes.progressArea}>
-          <Loading numFiles={files?.length} complete={complete} />
-        </div>
-      ) : (
+      {uploadStatus === 'idle' ? (
         <div
           className={classes.dropArea}
           onDragEnter={handleDragEvent}
@@ -134,6 +139,10 @@ export const UploadView = () => {
               </label>
             </div>
           </Gradient>
+        </div>
+      ) : (
+        <div className={classes.progressArea}>
+          <Loading />
         </div>
       )}
     </div>

@@ -1,10 +1,18 @@
 import { CreatedImage, Image, ImageInfo, Tag } from 'core/types';
 import { ActionType, BaseAction } from 'redux/types';
 
+export type UploadStatus =
+  | 'idle'
+  | 'uploading'
+  | 'waiting'
+  | 'success'
+  | 'failure';
+
 export interface ImageState {
   owned: Record<string, string>;
   loaded: Record<string, Image>;
   current: string | null;
+  uploadStatus: UploadStatus;
 }
 
 // actions
@@ -40,10 +48,16 @@ export interface DeleteTagAction extends BaseAction<ActionType.DELETE_TAG> {
   tag: Tag;
 }
 
+export interface UpdateUploadStatus
+  extends BaseAction<ActionType.UPDATE_UPLOAD_STATUS> {
+  status: UploadStatus;
+}
+
 export type ImageActions =
   | UploadImagesAction
   | FetchImageAction
   | EditImageAction
   | DeleteImageAction
   | AddTagAction
-  | DeleteTagAction;
+  | DeleteTagAction
+  | UpdateUploadStatus;

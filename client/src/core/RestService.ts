@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { Image, CreatedImage, ImageInfo, Tag } from 'core/types';
 
-const baseUrl = process.env.REACT_APP_BASE_URL;
+type ProgressCallback = (progress: number) => void;
 
+const baseUrl = process.env.REACT_APP_BASE_URL;
 export default class RestService {
   // Image
 
@@ -50,7 +51,10 @@ export default class RestService {
     return res.data;
   }
 
-  public static async uploadImages(files: FileList): Promise<CreatedImage[]> {
+  public static async uploadImages(
+    files: FileList,
+    callback?: ProgressCallback
+  ): Promise<CreatedImage[]> {
     const url = `${baseUrl}/api/images`;
     const formData = new FormData();
     for (const file of files) {
@@ -61,10 +65,10 @@ export default class RestService {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      onUploadProgress: progressEvent => {
-        const { loaded, total } = progressEvent;
-        // Do something with the progress details
-        console.log(`upload progress | ${loaded} | ${total}`);
+      onUploadProgress: event => {
+        const { loaded, total } = event;
+        const progress = Math.round((loaded * 100) / total);
+        callback?.(progress);
       },
     });
     return res.data;

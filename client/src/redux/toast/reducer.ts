@@ -3,8 +3,8 @@ import { ActionType } from 'redux/types';
 import { ToastActions, ToastState } from './types';
 
 const initialState: ToastState = {
-  kind: '',
-  message: '',
+  kind: null,
+  message: null,
 };
 
 export const toastReducer = createReducer<ToastState, ToastActions>(

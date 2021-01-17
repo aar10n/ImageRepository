@@ -13,6 +13,8 @@ export enum ActionType {
 
   SET_TOAST = 'toast/SET_TOAST',
   CLEAR_TOAST = 'toast/CLEAR_TOAST',
+
+  UPDATE_UPLOAD_STATUS = 'image/UPDATE_UPLOAD_STATUS',
 }
 
 export interface AppState {

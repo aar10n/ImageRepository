@@ -1,10 +1,10 @@
-import { ActionType, BaseAction, Reducers } from 'redux/types';
+import { ActionType, BaseAction } from 'redux/types';
 
-export type ToastKind = '' | 'error';
+export type ToastKind = 'error' | 'warning';
 
 export interface ToastState {
-  kind: ToastKind;
-  message: string;
+  kind: ToastKind | null;
+  message: string | null;
 }
 
 // actions

@@ -1,93 +1,55 @@
-import { useEffect, useState, useRef } from 'react';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
-import { CSSProperties } from '@material-ui/core/styles/withStyles';
-import { tuple } from 'core/types';
-
-interface Props {
-  numFiles?: number;
-  complete?: boolean;
-}
 
 const useStyles = makeStyles(() =>
   createStyles({
-    progressBar: {
-      width: '80%',
-      height: '8%',
-      borderRadius: '8%/100%',
-      backgroundColor: 'black',
-      overflow: 'hidden',
+    container: {
+      display: 'flex',
+      justifyContent: 'space-between',
+
+      '& span': {
+        width: '12px',
+        height: '12px',
+        borderRadius: '50%',
+        margin: '3px',
+        transform: 'scale(0)',
+        animation: '$bounce 1s infinite ease-in-out both',
+      },
     },
-    progress: {
-      width: '0%',
-      height: '100%',
-      backgroundColor: '#64b5f6',
+    green: {
+      backgroundColor: '#4caf50',
+      animationDelay: '0s !important',
+    },
+    red: {
+      backgroundColor: '#f44336',
+      animationDelay: '0.2s !important',
+    },
+    orange: {
+      backgroundColor: '#ff9800',
+      animationDelay: '0.3s !important',
+    },
+    blue: {
+      backgroundColor: '#2196f3',
+      animationDelay: '0.35s !important',
+    },
+
+    /* animations */
+
+    '@keyframes bounce': {
+      '0%': { transform: 'scale(0)' },
+      '50%': { transform: 'scale(1)' },
+      '100%': { transform: 'scale(0)' },
     },
   })
 );
 
-export const Loading = (props: Props) => {
-  const [style, setStyle] = useState<CSSProperties>();
+export const Loading = () => {
   const classes = useStyles();
-  const done = useRef(false);
-  const barRef = useRef<HTMLDivElement>(null);
-
-  const { numFiles, complete } = props;
-  done.current = complete ?? false;
-
-  const getBarProgress = () => {
-    if (!barRef.current || !barRef.current.parentElement) return tuple(0, 0);
-
-    const width = parseFloat(
-      window.getComputedStyle(barRef.current).getPropertyValue('width')
-    );
-    const maxWidth = parseFloat(
-      window
-        .getComputedStyle(barRef.current.parentElement)
-        .getPropertyValue('width')
-    );
-
-    return tuple(width, maxWidth);
-  };
-
-  useEffect(() => {
-    const time = (numFiles ?? 0) * 1.15 * 1000;
-    const almostDone = time * 0.8;
-
-    setStyle({
-      width: '100%',
-      transition: `width ${time}ms linear`,
-    });
-
-    const id = setTimeout(() => {
-      if (done.current) return;
-
-      const [width] = getBarProgress();
-      setStyle({
-        width: `${width}px`,
-      });
-    }, almostDone);
-
-    return () => {
-      clearTimeout(id);
-    };
-  }, [numFiles]);
-
-  useEffect(() => {
-    if (!complete) return;
-    if (!barRef.current) return;
-    if (!barRef.current.parentElement) return;
-
-    const [width, maxWidth] = getBarProgress();
-    const completed = width / maxWidth;
-    setStyle({
-      width: '102%',
-      transition: `width ${completed * 1000}ms ease-in`,
-    });
-  }, [complete]);
-
   return (
-    <div className={classes.progressBar}>
-      <div className={classes.progress} style={style} ref={barRef}></div>
+    <div className={classes.container}>
+      <span className={classes.green} />
+      <span className={classes.red} />
+      <span className={classes.orange} />
+      <span className={classes.blue} />
     </div>
   );
 };
