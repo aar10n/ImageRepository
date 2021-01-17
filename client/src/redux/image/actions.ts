@@ -12,17 +12,12 @@ import {
 import RestService from 'core/RestService';
 import { getSecret } from './selectors';
 
-const updateUploadStatus = (status: UploadStatus): UpdateUploadStatus => ({
-  type: ActionType.UPDATE_UPLOAD_STATUS,
-  status,
-});
-
 export const uploadImages = (files: FileList): Thunk<any> => async dispatch => {
-  dispatch(updateUploadStatus('uploading'));
+  dispatch(setUploadStatus('uploading'));
   try {
     const images = await RestService.uploadImages(files, progress => {
       if (progress === 100) {
-        dispatch(updateUploadStatus('waiting'));
+        dispatch(setUploadStatus('waiting'));
       }
     });
     const owned = images.map(image => {
@@ -36,7 +31,7 @@ export const uploadImages = (files: FileList): Thunk<any> => async dispatch => {
       owned,
     });
   } catch (error) {
-    dispatch(updateUploadStatus('failure'));
+    dispatch(setUploadStatus('failure'));
     throw error;
   }
 };
@@ -100,3 +95,8 @@ export const deleteTag = (
     tag,
   });
 };
+
+export const setUploadStatus = (status: UploadStatus): UpdateUploadStatus => ({
+  type: ActionType.UPDATE_UPLOAD_STATUS,
+  status,
+});

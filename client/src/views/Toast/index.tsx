@@ -30,17 +30,14 @@ const toastTypes = {
   },
 };
 
-const useStyles = makeStyles(theme =>
+const useStyles = makeStyles(() =>
   createStyles({
     container: (props: StyleProps) => ({
       position: 'absolute',
-      display: 'flex',
-      alignItems: 'center',
-      justifyItems: 'center',
       width: '300px',
       height: '70px',
       bottom: '5%',
-      left: '50%',
+      left: 'calc(50% - 150px)',
       borderRadius: '12px',
       backgroundColor: props.main,
       boxShadow: '0 3px 7px 0 rgba(0, 0, 0, .4)',
@@ -52,7 +49,6 @@ const useStyles = makeStyles(theme =>
       height: '100%',
       display: 'flex',
       alignItems: 'center',
-      // justifyContent: 'center',
     },
     close: (props: StyleProps) => ({
       width: '20px',

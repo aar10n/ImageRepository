@@ -1,27 +1,41 @@
 import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
-import { useHistory } from 'react-router';
+import { useHistory } from 'react-router-dom';
 
 import { Gradient } from 'views/UploadView/Gradient';
 import { Loading } from 'views/UploadView/Loading';
 import { index } from 'core/utils';
-import { useDispatch, useSelector } from 'react-redux';
-import { uploadImages } from 'redux/image/actions';
+import { uploadImages, setUploadStatus } from 'redux/image/actions';
 import { getCurrent, getUploadStatus } from 'redux/image/selectors';
+import { clearToast } from 'redux/toast/actions';
 
 export type DragState = 'dragenter' | 'dragover' | 'dragleave' | 'drop';
 
 const useStyles = makeStyles(() =>
   createStyles({
     container: {
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    },
+    box: {
       width: '480px',
       height: '320px',
+      backgroundColor: '#3c424b',
+      boxShadow: '0 5px 15px 0 rgba(0, 0, 0, .3)',
+      borderRadius: '10px',
+      position: 'relative',
     },
     dropArea: {
       width: '100%',
       height: '100%',
       color: 'white',
       fontSize: '16px',
+      overflow: 'hidden',
       fontFamily: 'Helvetica Neue, Arial',
     },
     dropBox: {
@@ -29,7 +43,6 @@ const useStyles = makeStyles(() =>
       height: '72px',
       verticalAlign: 'middle',
       border: '3px dashed hsla(0,0%,100%,.4)',
-      borderRadius: '6px',
       cursor: 'pointer',
     },
     input: {
@@ -46,12 +59,50 @@ const useStyles = makeStyles(() =>
       justifyContent: 'center',
       pointerEvents: 'auto',
     },
-    progressArea: {
+    loading: {
       width: '100%',
       height: '100%',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    close: {
+      width: '50px',
+      height: '50px',
+      borderRadius: '50%',
+      position: 'absolute',
+      color: 'white',
+      backgroundColor: '#393e47',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      right: -25,
+      top: -25,
+      zIndex: 5,
+      boxShadow: '0 5px 10px 1px rgba(27,28,30,.31)',
+
+      '&:hover': {
+        cursor: 'pointer',
+      },
+    },
+    closeIcon: {
+      transform: 'scale(1.5) translateY(1px)',
+      alignSelf: 'center',
+    },
+    failure: {
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: 'Helvetica Neue, Arial',
+      fontSize: '18px',
+    },
+    tryAgain: {
+      textDecoration: 'underline',
+      fontSize: '14px',
+      cursor: 'pointer',
     },
   })
 );
@@ -109,42 +160,76 @@ export const UploadView = () => {
     if (uploadStatus === 'success') {
       history.push(`/i/${current?.id}`);
     } else if (uploadStatus === 'failure') {
-      history.push(`/`);
+      // dispatch(setUploadStatus('idle'));
+      history.replace(`/upload`);
     }
-  }, [uploadStatus, current, history]);
+  }, [uploadStatus, current, history, dispatch]);
+
+  // subcomponents
+
+  const UploadBox = () => (
+    <div
+      className={classes.dropArea}
+      onDragEnter={handleDragEvent}
+      onDragOver={handleDragEvent}
+      onDragLeave={handleDragEvent}
+      onDrop={handleDragEvent}
+    >
+      <Gradient dragDepth={elemStack.length}>
+        <div className={classes.dropBox}>
+          <input
+            className={classes.input}
+            id="file-input"
+            type="file"
+            name="files"
+            multiple
+            accept="image/*"
+            onChange={handleChange}
+          />
+          <label className={classes.inputLabel} htmlFor="file-input">
+            Choose Images
+          </label>
+        </div>
+      </Gradient>
+    </div>
+  );
+
+  const LoadingIndicator = () => (
+    <div className={classes.loading}>
+      <Loading />
+    </div>
+  );
+
+  const FailureText = () => (
+    <div className={classes.failure}>
+      <div>Upload Failed</div>
+      <div
+        className={classes.tryAgain}
+        onClick={() => {
+          dispatch(clearToast());
+          dispatch(setUploadStatus('idle'));
+        }}
+      >
+        Try Again
+      </div>
+    </div>
+  );
 
   return (
     <div className={classes.container}>
-      {uploadStatus === 'idle' ? (
-        <div
-          className={classes.dropArea}
-          onDragEnter={handleDragEvent}
-          onDragOver={handleDragEvent}
-          onDragLeave={handleDragEvent}
-          onDrop={handleDragEvent}
-        >
-          <Gradient dragDepth={elemStack.length}>
-            <div className={classes.dropBox}>
-              <input
-                className={classes.input}
-                id="file-input"
-                type="file"
-                name="files"
-                multiple
-                accept="image/*"
-                onChange={handleChange}
-              />
-              <label className={classes.inputLabel} htmlFor="file-input">
-                Choose Images
-              </label>
-            </div>
-          </Gradient>
+      <div className={classes.box}>
+        {uploadStatus === 'idle' ? (
+          <UploadBox />
+        ) : uploadStatus === 'uploading' || uploadStatus === 'waiting' ? (
+          <LoadingIndicator />
+        ) : uploadStatus === 'failure' ? (
+          <FailureText />
+        ) : null}
+
+        <div className={classes.close}>
+          <div className={classes.closeIcon}>&#x2715;</div>
         </div>
-      ) : (
-        <div className={classes.progressArea}>
-          <Loading />
-        </div>
-      )}
+      </div>
     </div>
   );
 };
