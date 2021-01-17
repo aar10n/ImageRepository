@@ -35,6 +35,7 @@ class RequestHandler(tornado.web.RequestHandler):
       return all([isinstance(el, str) and os.path.isfile(el) for el in l])
 
     content_type = self.request.headers['Content-Type'].replace(' ', '').split(';')
+    print(self.request.body)
     if 'application/json' not in content_type:
       self.set_status(415)
       return None

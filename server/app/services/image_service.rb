@@ -1,5 +1,7 @@
 DEFAULT_PAGE_SIZE = 20
 
+RESIZER_URL = "http://localhost/api/resizer"
+
 module ImageService
   # @param name [String]
   # @param ext [String]
@@ -41,17 +43,16 @@ module ImageService
           id = SecureRandom.alphanumeric($id_length)
           file_name = file.original_filename
           data = file.read
+          path = save_image(id, File.extname(file_name), data)
 
           obj = {
             id: id,
             data: data,
+            path: path,
             file_name: file_name,
             file_size: file.size,
             mime_type: file.content_type,
           }
-
-          # save image to disk
-          save_image(id, File.extname(file_name), data)
 
           # get the image width, height, orientation and tags
           begin
@@ -75,7 +76,14 @@ module ImageService
       t[:obj]
     end
 
-    images = Image.create(objs.map { |obj| obj.without(:data, :tags) })
+    # curb tries to send this as a multipart form-data request without
+    # the explicit headers/json serialization
+    paths = objs.map { |obj| obj[:path] }
+    Curl.post("http://localhost/api/resizer", paths.to_json) do |request|
+      request.headers["Content-Type"] = "application/json"
+    end
+
+    images = Image.create(objs.map { |obj| obj.without(:data, :path, :tags) })
     images.zip(objs).each do |image, obj|
       image.tags.create(obj[:tags]) unless obj[:tags].empty?
     end

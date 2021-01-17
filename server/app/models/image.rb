@@ -12,6 +12,11 @@ class Image < ApplicationRecord
     File.join($base_url, "/images/#{id}#{File.extname(file_name)}")
   end
 
+  # @return [String]
+  def thumbnail_url
+    File.join($base_url, "/images/thumbnails/#{id}#{File.extname(file_name)}")
+  end
+
   # @return [Array<Tag>]
   def keywords
     tags.where(kind: "keyword").to_a
@@ -38,7 +43,7 @@ class Image < ApplicationRecord
       title: title,
       description: description,
       private: private,
-      url: url,
+      url: options[:thumbnails] ? thumbnail_url : url,
       secret: secret,
       tags: options[:thumbnails] ? [] : keywords.as_json,
       created_at: created_at,

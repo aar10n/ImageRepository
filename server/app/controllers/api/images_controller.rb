@@ -13,7 +13,6 @@ module Api
     #   thumbnails | boolean | Return less information per image
     def index
       opts = validate_index!
-      puts ">> #{opts}"
       offset = (opts[:page] - 1) * opts[:page_size]
       images = Image.where(private: false, published_at: ..Time.now)
                     .offset(offset).limit(opts[:page_size]).to_a
