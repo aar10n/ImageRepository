@@ -40,7 +40,7 @@ class Image < ApplicationRecord
       private: private,
       url: url,
       secret: secret,
-      tags: keywords.as_json,
+      tags: options[:thumbnails] ? [] : keywords.as_json,
       created_at: created_at,
       updated_at: updated_at
     }

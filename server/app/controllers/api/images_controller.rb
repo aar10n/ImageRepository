@@ -13,6 +13,7 @@ module Api
     #   thumbnails | boolean | Return less information per image
     def index
       opts = validate_index!
+      puts ">> #{opts}"
       offset = (opts[:page] - 1) * opts[:page_size]
       images = Image.where(private: false, published_at: ..Time.now)
                     .offset(offset).limit(opts[:page_size]).to_a
@@ -89,8 +90,8 @@ module Api
       raise HttpError, 400 unless validator.call(options)
 
       {
-        page_size: options[:page]&.to_i || 1,
-        page: options[:page_size]&.to_i || 20,
+        page: options[:page]&.to_i || 1,
+        page_size: options[:page_size]&.to_i || 20,
         thumbnails: options[:thumbnails]&.to_b || false,
       }
     end
