@@ -30,6 +30,14 @@ export interface Image {
   updated_at: string;
 }
 
+export interface Thumbnail {
+  id: string;
+  width: number;
+  height: number;
+  orientation: Orientation;
+  url: string;
+}
+
 export interface CreatedImage extends Image {
   secret: string;
 }

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Image, CreatedImage, ImageInfo, Tag } from 'core/types';
+import { Image, CreatedImage, ImageInfo, Tag, Thumbnail } from 'core/types';
 
 type ProgressCallback = (progress: number) => void;
 
@@ -43,11 +43,11 @@ export default class RestService {
   public static async getImages(
     page: number,
     pageSize: number
-  ): Promise<Image[]> {
+  ): Promise<Thumbnail[]> {
     page = Math.abs(page);
     pageSize = Math.abs(pageSize);
-    const url = `${baseUrl}/api/images`;
-    const res = await axios.get<Image[]>(url);
+    const url = `${baseUrl}/api/images?thumbnail=true`;
+    const res = await axios.get<Thumbnail[]>(url);
     return res.data;
   }
 

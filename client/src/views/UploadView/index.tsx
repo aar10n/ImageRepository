@@ -6,8 +6,8 @@ import { useHistory } from 'react-router-dom';
 import { Gradient } from 'views/UploadView/Gradient';
 import { Loading } from 'views/UploadView/Loading';
 import { index } from 'core/utils';
-import { uploadImages, setUploadStatus } from 'redux/image/actions';
-import { getCurrent, getUploadStatus } from 'redux/image/selectors';
+import { uploadImages, setRequestStatus } from 'redux/image/actions';
+import { getCurrent, getRequestStatus } from 'redux/image/selectors';
 import { clearToast } from 'redux/toast/actions';
 
 export type DragState = 'dragenter' | 'dragover' | 'dragleave' | 'drop';
@@ -110,7 +110,7 @@ const useStyles = makeStyles(() =>
 export const UploadView = () => {
   const [dragState, setDragState] = useState<DragState>();
   const [elemStack, setElemStack] = useState<HTMLElement[]>([]);
-  const uploadStatus = useSelector(getUploadStatus);
+  const requestStatus = useSelector(getRequestStatus);
   const current = useSelector(getCurrent);
   const dispatch = useDispatch();
   const classes = useStyles();
@@ -157,13 +157,13 @@ export const UploadView = () => {
   }, [current, history]);
 
   useEffect(() => {
-    if (uploadStatus === 'success') {
+    if (requestStatus === 'success') {
       history.push(`/i/${current?.id}`);
-    } else if (uploadStatus === 'failure') {
+    } else if (requestStatus === 'failure') {
       // dispatch(setUploadStatus('idle'));
       history.replace(`/upload`);
     }
-  }, [uploadStatus, current, history, dispatch]);
+  }, [requestStatus, current, history, dispatch]);
 
   // subcomponents
 
@@ -207,7 +207,7 @@ export const UploadView = () => {
         className={classes.tryAgain}
         onClick={() => {
           dispatch(clearToast());
-          dispatch(setUploadStatus('idle'));
+          dispatch(setRequestStatus('idle'));
         }}
       >
         Try Again
@@ -218,11 +218,11 @@ export const UploadView = () => {
   return (
     <div className={classes.container}>
       <div className={classes.box}>
-        {uploadStatus === 'idle' ? (
+        {requestStatus === 'idle' ? (
           <UploadBox />
-        ) : uploadStatus === 'uploading' || uploadStatus === 'waiting' ? (
+        ) : requestStatus === 'uploading' || requestStatus === 'waiting' ? (
           <LoadingIndicator />
-        ) : uploadStatus === 'failure' ? (
+        ) : requestStatus === 'failure' ? (
           <FailureText />
         ) : null}
 

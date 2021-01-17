@@ -1,7 +1,7 @@
 import { CreatedImage, Image, ImageInfo, Tag } from 'core/types';
 import { ActionType, BaseAction } from 'redux/types';
 
-export type UploadStatus =
+export type RequestStatus =
   | 'idle'
   | 'uploading'
   | 'waiting'
@@ -12,7 +12,7 @@ export interface ImageState {
   owned: Record<string, string>;
   loaded: Record<string, Image>;
   current: string | null;
-  uploadStatus: UploadStatus;
+  requestStatus: RequestStatus;
 }
 
 // actions
@@ -48,9 +48,9 @@ export interface DeleteTagAction extends BaseAction<ActionType.DELETE_TAG> {
   tag: Tag;
 }
 
-export interface UpdateUploadStatus
-  extends BaseAction<ActionType.UPDATE_UPLOAD_STATUS> {
-  status: UploadStatus;
+export interface SetRequestStatusAction
+  extends BaseAction<ActionType.SET_REQUEST_STATUS> {
+  status: RequestStatus;
 }
 
 export type ImageActions =
@@ -60,4 +60,4 @@ export type ImageActions =
   | DeleteImageAction
   | AddTagAction
   | DeleteTagAction
-  | UpdateUploadStatus;
+  | SetRequestStatusAction;

@@ -7,7 +7,7 @@ const initialState: ImageState = {
   loaded: {},
   owned: {},
   current: null,
-  uploadStatus: 'idle',
+  requestStatus: 'idle',
 };
 
 export const imageReducer = createReducer<ImageState, ImageActions>(
@@ -18,7 +18,7 @@ export const imageReducer = createReducer<ImageState, ImageActions>(
       loaded: Object.fromEntries(images.map(image => tuple(image.id, image))),
       owned: Object.fromEntries(owned),
       current: images[0].id,
-      uploadStatus: 'success',
+      requestStatus: 'success',
     }),
     [ActionType.FETCH_IMAGE]: (state, { image }) => ({
       ...state,
@@ -73,9 +73,9 @@ export const imageReducer = createReducer<ImageState, ImageActions>(
         },
       };
     },
-    [ActionType.UPDATE_UPLOAD_STATUS]: (state, { status }) => ({
+    [ActionType.SET_REQUEST_STATUS]: (state, { status }) => ({
       ...state,
-      uploadStatus: status,
+      requestStatus: status,
     }),
   }
 );

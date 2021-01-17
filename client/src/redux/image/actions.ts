@@ -6,18 +6,23 @@ import {
   DeleteTagAction,
   EditImageAction,
   FetchImageAction,
-  UpdateUploadStatus,
-  UploadStatus,
+  SetRequestStatusAction,
+  RequestStatus,
 } from './types';
 import RestService from 'core/RestService';
 import { getSecret } from './selectors';
 
+export const getImages = (page: number): Thunk<any> => async dispatch => {
+  const images = await RestService.getImages(page, 20);
+  return;
+};
+
 export const uploadImages = (files: FileList): Thunk<any> => async dispatch => {
-  dispatch(setUploadStatus('uploading'));
+  dispatch(setRequestStatus('uploading'));
   try {
     const images = await RestService.uploadImages(files, progress => {
       if (progress === 100) {
-        dispatch(setUploadStatus('waiting'));
+        dispatch(setRequestStatus('waiting'));
       }
     });
     const owned = images.map(image => {
@@ -31,7 +36,7 @@ export const uploadImages = (files: FileList): Thunk<any> => async dispatch => {
       owned,
     });
   } catch (error) {
-    dispatch(setUploadStatus('failure'));
+    dispatch(setRequestStatus('failure'));
     throw error;
   }
 };
@@ -96,7 +101,9 @@ export const deleteTag = (
   });
 };
 
-export const setUploadStatus = (status: UploadStatus): UpdateUploadStatus => ({
-  type: ActionType.UPDATE_UPLOAD_STATUS,
+export const setRequestStatus = (
+  status: RequestStatus
+): SetRequestStatusAction => ({
+  type: ActionType.SET_REQUEST_STATUS,
   status,
 });
