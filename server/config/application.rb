@@ -6,10 +6,11 @@ require "active_model/railtie"
 require "active_record/railtie"
 require "action_controller/railtie"
 require "action_view/railtie"
-require 'elasticsearch/rails/instrumentation'
+require "elasticsearch/rails/instrumentation"
 
 require_relative "../lib/middleware/error_middleware"
 require_relative "../lib/mixins/string"
+require_relative "../lib/mixins/hash"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.

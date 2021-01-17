@@ -8,16 +8,16 @@ module Api
     # GET /api/images
     #
     # Parameters:
-    #   page      | number | The page of images to get
-    #   page_size | number | The number of images per page
-    #   sort      | string | The sort order: "asc" or "dsc"
+    #   page       | number  | The page of images to get
+    #   page_size  | number  | The number of images per page
+    #   thumbnails | boolean | Return less information per image
     def index
-      page, page_size = validate_index!
-      offset = (page - 1) * page_size
+      opts = validate_index!
+      offset = (opts[:page] - 1) * opts[:page_size]
       images = Image.where(private: false, published_at: ..Time.now)
-                    .offset(offset).limit(page_size).to_a
+                    .offset(offset).limit(opts[:page_size]).to_a
 
-      render status: 200, json: images
+      render status: 200, json: images.as_json(thumbnails: opts[:thumbnails])
     end
 
     # POST /api/images
@@ -81,13 +81,18 @@ module Api
         optional do
           key :page, is: integer?
           key :page_size, is: integer?
+          key :thumbnails, is: boolean?
         end
       end
 
       options = request.query_parameters
       raise HttpError, 400 unless validator.call(options)
 
-      [options[:page]&.to_i || 1, options[:page_size]&.to_i || 20]
+      {
+        page_size: options[:page]&.to_i || 1,
+        page: options[:page_size]&.to_i || 20,
+        thumbnails: options[:thumbnails]&.to_b || false,
+      }
     end
 
     # create parameter validation

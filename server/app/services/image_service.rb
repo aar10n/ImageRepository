@@ -56,7 +56,6 @@ module ImageService
           # get the image width, height, orientation and tags
           begin
             extra = TagService.tag_image(file.original_filename.to_s, data)
-            puts ">> extra: #{extra}"
           rescue HttpError => e
             Rails.logger.error "Failed to tag image - status code #{e.code}"
             Rails.logger.info ">> Falling back"
@@ -65,7 +64,6 @@ module ImageService
             # height and orientation of the image. No tags this
             # way unfortunately.
             extra = get_dimensions(data)
-            puts ">> extra: #{extra}"
           end
 
           Thread.current[:obj] = obj.merge(extra)
@@ -79,16 +77,9 @@ module ImageService
 
     images = Image.create(objs.map { |obj| obj.without(:data, :tags) })
     images.zip(objs).each do |image, obj|
-      puts ">>"
-      puts obj[:tags]
-      unless obj[:tags].empty?
-        image.tags.create(obj[:tags])
-      end
+      image.tags.create(obj[:tags]) unless obj[:tags].empty?
     end
 
     images
   end
-
-  # Updates
-  def self.update_images(metadata); end
 end

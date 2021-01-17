@@ -25,6 +25,8 @@ class Image < ApplicationRecord
   # @return [Hash]
   def as_json(options = nil)
     options[:with_secret] ||= false
+    options[:thumbnails] ||= false
+
     json = {
       id: id,
       name: file_name,
@@ -43,14 +45,16 @@ class Image < ApplicationRecord
       updated_at: updated_at
     }
 
-    options[:with_secret] ? json : json.without(:secret)
+    if options[:thumbnails]
+      json.with(:id, :width, :height, :orientation, :url)
+    elsif !options[:with_secret]
+      json.without(:secret)
+    else
+      json
+    end
   end
 
   private
-
-  def create_tags
-    puts ">>> tags: #{tags}"
-  end
 
   def default_values
     self.id ||= SecureRandom.alphanumeric($id_length)
