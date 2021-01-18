@@ -1,4 +1,4 @@
-import { Color, KeyofType, Orientation } from 'core/types';
+import { Color, Orientation } from 'core/types';
 
 export interface SearchOptions {
   color?: Color;
@@ -45,6 +45,29 @@ export default class SearchService {
       }
     }
     return options;
+  }
+
+  //
+
+  public static removeParam(url: string, param: string): string {
+    return url.replace(
+      new RegExp(`((&|\\?)${param}=[^&]+$|${param}=[^&]+&?)`),
+      ''
+    );
+  }
+
+  public static updateParam(url: string, param: string, value: any): string {
+    const escaped = String(value).replace(' ', '+');
+    const parts = url.split('?');
+    if (parts[1]?.includes(param)) {
+      return url.replace(
+        new RegExp(`(?<=&|\\?)${param}=[^&]+`),
+        `${param}=${escaped}`
+      );
+    }
+
+    const sep = parts[1] !== undefined ? '&' : '?';
+    return `${url}${sep}${param}=${escaped}`;
   }
 
   //
