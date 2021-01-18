@@ -5,6 +5,8 @@ type ProgressCallback = (progress: number) => void;
 
 const baseUrl = process.env.REACT_APP_BASE_URL;
 export default class RestService {
+  private constructor() {}
+
   // Image
 
   public static async getImage(id: string): Promise<Image> {

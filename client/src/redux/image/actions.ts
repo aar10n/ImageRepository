@@ -115,7 +115,6 @@ export const loadSavedSecrets = (): LoadSavedSecretsAction => {
   const entries = Object.entries(localStorage).filter(
     ([key, value]) => key.length === 7 && value.length === 20
   );
-  console.log(Object.entries(localStorage));
   return {
     type: ActionType.LOAD_SAVED_SECRETS,
     owned: Object.fromEntries(entries),

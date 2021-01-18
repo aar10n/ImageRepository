@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import { Thumbnail } from 'core/types';
 import { useDispatch } from 'react-redux';
 import { getImages, loadSavedSecrets } from 'redux/image/actions';
+import { Home } from './Home';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -33,20 +34,10 @@ const useStyles = makeStyles(() =>
 const App = () => {
   const dispatch = useDispatch();
   const classes = useStyles();
-  const [images, setImages] = useState<Thumbnail[]>([]);
 
   useEffect(() => {
     dispatch(loadSavedSecrets());
   }, [dispatch]);
-
-  // useEffect(() => {
-  //   const fetchImages = async () => {
-  //     const thumbnails = (await dispatch(getImages(1))) as any;
-  //     setImages(thumbnails);
-  //   };
-
-  //   fetchImages();
-  // }, [dispatch]);
 
   return (
     <div className={classes.root}>
@@ -54,11 +45,15 @@ const App = () => {
       <Router>
         <Switch>
           <Route exact path="/">
-            <Gallery images={images} />
+            <Home />
           </Route>
 
           <Route path="/upload">
             <Upload />
+          </Route>
+
+          <Route path="/search/:query?">
+            <Search />
           </Route>
 
           <Route path="/i/:id">

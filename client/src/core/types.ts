@@ -49,6 +49,24 @@ export interface ImageInfo {
   tags?: string[];
 }
 
+export enum Color {
+  Grayscale = 'grayscale',
+  Red = 'red',
+  Orange = 'orange',
+  Amber = 'amber',
+  Yellow = 'yellow',
+  Lime = 'lime',
+  Green = 'green',
+  Teal = 'teal',
+  Turquoise = 'turquoise',
+  Aqua = 'aqua',
+  Azure = 'azure',
+  Blue = 'blue',
+  Purple = 'purple',
+  Orchid = 'orchid',
+  Magenta = 'magenta',
+}
+
 export enum Orientation {
   Landscape = 'landscape',
   Portrait = 'portrait',
