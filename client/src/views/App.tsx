@@ -2,17 +2,16 @@ import { createStyles, makeStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 
-import { Gallery } from 'views/GalleryView';
+import { Gallery } from 'views/Gallery';
 import { Filter } from 'views/FilterView';
 import { Search } from 'views/Search';
-import { UploadView } from 'views/UploadView';
-import { ImageView } from 'views/ImageView';
+import { Upload } from 'views/Upload';
+import { Image } from 'views/Image';
 import { Toast } from 'views/Toast';
 import { useEffect, useState } from 'react';
 import { Thumbnail } from 'core/types';
-import RestService from 'core/RestService';
 import { useDispatch } from 'react-redux';
-import { getImages } from 'redux/image/actions';
+import { getImages, loadSavedSecrets } from 'redux/image/actions';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -37,14 +36,17 @@ const App = () => {
   const [images, setImages] = useState<Thumbnail[]>([]);
 
   useEffect(() => {
-    const fetchImages = async () => {
-      const thumbnails = (await dispatch(getImages(1))) as any;
-      console.log(thumbnails);
-      setImages(thumbnails);
-    };
-
-    fetchImages();
+    dispatch(loadSavedSecrets());
   }, [dispatch]);
+
+  // useEffect(() => {
+  //   const fetchImages = async () => {
+  //     const thumbnails = (await dispatch(getImages(1))) as any;
+  //     setImages(thumbnails);
+  //   };
+
+  //   fetchImages();
+  // }, [dispatch]);
 
   return (
     <div className={classes.root}>
@@ -56,15 +58,15 @@ const App = () => {
           </Route>
 
           <Route path="/upload">
-            <UploadView />
+            <Upload />
           </Route>
 
           <Route path="/i/:id">
-            <ImageView />
+            <Image />
           </Route>
         </Switch>
 
-        <Toast timeout={-1} />
+        <Toast />
       </Router>
     </div>
   );

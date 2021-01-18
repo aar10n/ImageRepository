@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
+import { useHistory } from 'react-router-dom';
 
 import { debounce, range } from 'core/utils';
 import { LayoutEngine } from 'core/LayoutEngine';
@@ -36,7 +37,7 @@ const useStyles = makeStyles<Theme, StylesProps>(theme =>
       width: '100%',
       height: '100%',
       '& img': {
-        cursor: 'zoom-in',
+        cursor: 'pointer',
         width: '100%',
         height: '100%',
         objectFit: 'cover',
@@ -69,6 +70,7 @@ export const Gallery = (props: Props) => {
   const [spans, setSpans] = useState<number[]>([]);
   const galleryRef = useRef<HTMLDivElement>(null);
   const layoutEngine = useRef<LayoutEngine>();
+  const history = useHistory();
   const { images } = props;
 
   const classes = useStyles({
@@ -105,6 +107,8 @@ export const Gallery = (props: Props) => {
     });
 
     layoutEngine.current = engine;
+    const widths = engine.layout(getNumColumns());
+    setSpans(widths);
   }, [images]);
 
   // runs once on render
@@ -133,6 +137,9 @@ export const Gallery = (props: Props) => {
             className={classes.item}
             style={getStyles(spans[index])}
             key={index}
+            onClick={() => {
+              history.push(`/i/${image.id}`);
+            }}
           >
             <img className={classes.image} src={image.url} alt="" />
           </div>

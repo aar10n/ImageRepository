@@ -72,7 +72,7 @@ const useStyles = makeStyles(() =>
       },
     }),
     content: {
-      fontFamily: 'Helvetica Neue, Arial',
+      fontFamily: 'Helvetica, Arial',
       fontSize: '16px',
       marginLeft: '20px',
     },

@@ -48,6 +48,11 @@ export interface DeleteTagAction extends BaseAction<ActionType.DELETE_TAG> {
   tag: Tag;
 }
 
+export interface LoadSavedSecretsAction
+  extends BaseAction<ActionType.LOAD_SAVED_SECRETS> {
+  owned: Record<string, string>;
+}
+
 export interface SetRequestStatusAction
   extends BaseAction<ActionType.SET_REQUEST_STATUS> {
   status: RequestStatus;
@@ -60,4 +65,5 @@ export type ImageActions =
   | DeleteImageAction
   | AddTagAction
   | DeleteTagAction
+  | LoadSavedSecretsAction
   | SetRequestStatusAction;

@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 
-import { Gradient } from 'views/UploadView/Gradient';
-import { Loading } from 'views/UploadView/Loading';
+import { Gradient } from 'views/Upload/Gradient';
+import { Loading } from 'views/Upload/Loading';
 import { index } from 'core/utils';
 import { uploadImages, setRequestStatus } from 'redux/image/actions';
 import { getCurrent, getRequestStatus } from 'redux/image/selectors';
@@ -36,7 +36,7 @@ const useStyles = makeStyles(() =>
       color: 'white',
       fontSize: '16px',
       overflow: 'hidden',
-      fontFamily: 'Helvetica Neue, Arial',
+      fontFamily: 'Helvetica, Arial',
     },
     dropBox: {
       width: '264px',
@@ -96,7 +96,7 @@ const useStyles = makeStyles(() =>
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      fontFamily: 'Helvetica Neue, Arial',
+      fontFamily: 'Helvetica, Arial',
       fontSize: '18px',
     },
     tryAgain: {
@@ -107,7 +107,7 @@ const useStyles = makeStyles(() =>
   })
 );
 
-export const UploadView = () => {
+export const Upload = () => {
   const [dragState, setDragState] = useState<DragState>();
   const [elemStack, setElemStack] = useState<HTMLElement[]>([]);
   const requestStatus = useSelector(getRequestStatus);

@@ -14,6 +14,7 @@ export enum ActionType {
   SET_TOAST = 'toast/SET_TOAST',
   CLEAR_TOAST = 'toast/CLEAR_TOAST',
 
+  LOAD_SAVED_SECRETS = 'image/LOAD_SAVED_SECRET',
   SET_REQUEST_STATUS = 'image/SET_REQUEST_STATUS',
 }
 

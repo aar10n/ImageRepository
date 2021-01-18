@@ -2,6 +2,9 @@ import { Image } from 'core/types';
 import { AppState } from 'redux/types';
 import { RequestStatus } from './types';
 
+export const isOwner = (id: string) => (state: AppState): boolean =>
+  state.image.owned[id] !== undefined;
+
 export const isCurrent = (id: string) => (state: AppState): boolean =>
   state.image.current === id;
 

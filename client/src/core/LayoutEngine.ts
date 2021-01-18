@@ -72,7 +72,7 @@ export class LayoutEngine {
       },
     };
     this.debug = config?.debug ?? false;
-    console.log(items);
+    // console.log(items);
     this.boxes = items.map(item => {
       const orientation = this.getOrientation(item);
       const config = this.config[orientation];

@@ -12,12 +12,7 @@ const isHttpError = (err: any): err is AxiosError => err?.response;
 const errorMiddleware = (_: MiddlewareAPI<Dispatch, AppState>) => (
   next: Dispatch
 ) => (action: SomeAction) => {
-  console.log('----- middleware ------');
-  console.log(action);
-
   const handleError = (error: any) => {
-    console.log('>>> error <<<');
-    console.log(error);
     if (isHttpError(error)) {
       const { response } = error;
       next(setToast('error', `${response?.status} ${response?.statusText}`));
@@ -28,7 +23,6 @@ const errorMiddleware = (_: MiddlewareAPI<Dispatch, AppState>) => (
     const wrapped = (...args: Parameters<Thunk<any>>) => {
       let result: any;
       try {
-        console.log('doing action');
         result = action(...args);
       } catch (error) {
         handleError(error);

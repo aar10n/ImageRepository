@@ -73,6 +73,13 @@ export const imageReducer = createReducer<ImageState, ImageActions>(
         },
       };
     },
+    [ActionType.LOAD_SAVED_SECRETS]: (state, { owned }) => ({
+      ...state,
+      owned: {
+        ...state.owned,
+        ...owned,
+      },
+    }),
     [ActionType.SET_REQUEST_STATUS]: (state, { status }) => ({
       ...state,
       requestStatus: status,
