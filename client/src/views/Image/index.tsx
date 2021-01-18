@@ -4,6 +4,7 @@ import { useParams } from 'react-router';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { editImage, fetchImage } from 'redux/image/actions';
 import { getImage, isOwner } from 'redux/image/selectors';
+import { Tags } from 'views/Tags';
 
 interface Params {
   id: string;
@@ -17,13 +18,15 @@ const useStyles = makeStyles(() =>
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+      // backgroundColor: '#2e3035',
     },
     content: {
       // width: 'auto !important',
       width: '100%',
+      maxWidth: '60%',
       // height: '100%',
-      marginLeft: '25%',
-      marginRight: '25%',
+      // marginLeft: '25%',
+      // marginRight: '25%',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -45,6 +48,7 @@ const useStyles = makeStyles(() =>
       fontFamily: 'Helvetica, Arial',
       fontSize: '18px',
       marginTop: '8px',
+      marginBottom: '8px',
       fontWeight: 600,
       cursor: 'text',
     },
@@ -167,6 +171,8 @@ export const Image = () => {
               {image.description}
             </span>
           </div>
+
+          <Tags image={image} editable={owner} />
         </div>
       </div>
     )
