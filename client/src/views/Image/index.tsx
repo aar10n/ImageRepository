@@ -4,7 +4,7 @@ import { useParams } from 'react-router';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { editImage, fetchImage } from 'redux/image/actions';
 import { getImage, isOwner } from 'redux/image/selectors';
-import { Tags } from 'views/Tags';
+import { Tags } from 'views/Image/Tags';
 
 interface Params {
   id: string;
