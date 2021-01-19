@@ -3,6 +3,7 @@ import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import SearchService, { SearchOptions } from 'core/SearchService';
 import { ColorFilter } from './ColorFilter';
+import { OptionsFilter } from './OptionsFilter';
 
 interface Params {
   query: string | undefined;
@@ -12,6 +13,13 @@ const useStyles = makeStyles(() => createStyles({}));
 
 const useQuery = (query: string): SearchOptions =>
   useMemo(() => SearchService.validateOptions(query), [query]);
+
+const orientations = [
+  { id: 'default', value: 'All orientations' },
+  { id: 'landscape', value: 'Landscape' },
+  { id: 'portrait', value: 'Portrait' },
+  { id: 'square', value: 'Square' },
+];
 
 const colors = [
   {
@@ -43,6 +51,11 @@ const colors = [
   { id: 'magenta', value: '#EA06B1' },
 ];
 
+const people = [
+  { id: 'true', value: 'With people' },
+  { id: 'false', value: 'Without people' },
+];
+
 export const Search = () => {
   const history = useHistory();
   const params = useParams<Params>();
@@ -71,6 +84,19 @@ export const Search = () => {
         param="color"
         colors={colors}
         selected={options.color ?? 'default'}
+      />
+      <OptionsFilter
+        param="orientation"
+        numPerRow={2}
+        options={orientations}
+        selected={options.orientation ?? 'default'}
+      />
+      <OptionsFilter
+        param="people"
+        numPerRow={2}
+        options={people}
+        selected={String(options.people)}
+        toggle
       />
     </div>
   );

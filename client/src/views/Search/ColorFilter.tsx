@@ -61,7 +61,6 @@ const useStyles = makeStyles(() =>
       borderRadius: '4px',
       visibility: 'hidden',
       zIndex: -1,
-      // opacity: 0.5,
       filter: 'opacity(38%)',
     },
     colors: (colors: ColorOption[]) => {

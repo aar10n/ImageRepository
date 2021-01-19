@@ -16,7 +16,7 @@ const darkTheme = createMuiTheme({
   },
   typography: {
     allVariants: {
-      fontFamily: 'Helvetica, Arial, sans-serrif',
+      fontFamily: 'Helvetica, Arial, sans-serif',
     },
   },
 });

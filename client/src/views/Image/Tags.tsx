@@ -35,7 +35,7 @@ const useStyles = makeStyles(() =>
       borderRadius: '54px',
       backgroundColor: '#585d6a',
       boxShadow: '0 4px 5px rgba(0, 0, 0, .24)',
-      fontFamily: 'Varela Round, Helvetica, Arial, sans-serrif',
+      fontFamily: 'Varela Round, Helvetica, Arial, sans-serif',
       lineHeight: '14px',
       fontSize: '14px',
       cursor: 'pointer',
