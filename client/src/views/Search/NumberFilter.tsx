@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { ChangeEvent, memo, useState } from 'react';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
-import { useHistory } from 'react-router-dom';
-import SearchService from 'core/SearchService';
+import classNames from 'classnames';
+import { ChangeType } from 'views/Search/FilterPanel';
 
 interface Props {
   param: string;
@@ -9,6 +9,7 @@ interface Props {
   label: string;
   min?: number;
   max?: number;
+  onChange: (type: ChangeType, param: string, value: number) => void;
 }
 
 const useStyles = makeStyles(() =>
@@ -19,14 +20,17 @@ const useStyles = makeStyles(() =>
       flexDirection: 'column',
     },
     inputContainer: {
-      width: '20%',
-      paddingBottom: '24px',
+      paddingBottom: '8px',
       paddingTop: '4px',
-      minHeight: '65px',
     },
     label: {
       width: '100%',
       fontSize: '12px',
+      fontWeight: 'lighter',
+      color: '#2196f3',
+    },
+    labelNonempty: {
+      color: 'white',
     },
     input: {
       width: '100%',
@@ -36,6 +40,7 @@ const useStyles = makeStyles(() =>
       padding: '0px',
       fontSize: '16px',
       backgroundColor: '#2e3035',
+      borderBottom: '1px solid rgb(160,160,160)',
 
       '&::placeholder': {
         color: 'rgb(160,160,160)',
@@ -44,33 +49,29 @@ const useStyles = makeStyles(() =>
   })
 );
 
-export const NumberFilter = (props: Props) => {
-  const { param, selected, label, min, max } = props;
+export const NumberFilter = memo((props: Props) => {
+  const { param, selected, label, min, max, onChange } = props;
   const [number, setNumber] = useState(selected);
   const [focused, setFocused] = useState(false);
-  const history = useHistory();
   const classes = useStyles();
 
-  const handleSelect = (val: number) => {
-    setNumber(val);
-    const {
-      location: { pathname, search },
-    } = history;
-    const url = pathname + search;
+  const handleSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = Number(event.target.value);
+    setNumber(value);
 
-    let updated: string;
-    if (val === 0) {
-      updated = SearchService.removeParam(url, param);
-    } else {
-      updated = SearchService.updateParam(url, param, val);
-    }
-
-    history.replace(updated);
+    const type: ChangeType = value === 0 ? 'remove' : 'update';
+    onChange(type, param, value);
   };
 
   return (
     <div className={classes.container}>
-      <label className={classes.label} htmlFor={label}>
+      <label
+        className={classNames(
+          classes.label,
+          number === 0 ? '' : classes.labelNonempty
+        )}
+        htmlFor={label}
+      >
         {focused || number ? label : <div style={{ height: '17px' }} />}
       </label>
       <div className={classes.inputContainer}>
@@ -82,11 +83,11 @@ export const NumberFilter = (props: Props) => {
           min={min ?? ''}
           max={max ?? ''}
           value={number || ''}
-          onChange={event => handleSelect(Number(event.target.value))}
+          onChange={event => handleSelect(event)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
         />
       </div>
     </div>
   );
-};
+});

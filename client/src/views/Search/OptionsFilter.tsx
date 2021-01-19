@@ -1,8 +1,8 @@
 import { createStyles, makeStyles } from '@material-ui/core/styles';
-import { useHistory } from 'react-router-dom';
 import classNames from 'classnames';
+import { memo } from 'react';
 
-import SearchService from 'core/SearchService';
+import { ChangeType } from 'views/Search/FilterPanel';
 
 interface FilterOption {
   id: string;
@@ -15,12 +15,12 @@ interface Props {
   numPerRow: number;
   selected: string;
   toggle?: boolean;
+  onChange: (type: ChangeType, param: string, value: string) => void;
 }
 
 const useStyles = makeStyles(() =>
   createStyles({
     container: {
-      width: '20%',
       display: 'grid',
       gap: '8px',
       gridTemplateColumns: (props: Props) => `repeat(${props.numPerRow}, 1fr)`,
@@ -46,30 +46,16 @@ const useStyles = makeStyles(() =>
   })
 );
 
-export const OptionsFilter = (props: Props) => {
-  const history = useHistory();
-  const { param, options, selected, toggle } = props;
+export const OptionsFilter = memo((props: Props) => {
+  const { param, options, selected, toggle, onChange } = props;
   const classes = useStyles(props);
 
   const handleSelect = (id: string) => {
-    console.log(toggle);
-    if (id === selected && !toggle) {
-      return;
-    }
+    if (id === selected && !toggle) return;
 
-    const {
-      location: { pathname, search },
-    } = history;
-    const url = pathname + search;
-
-    let updated: string;
-    if (id === 'default' || (id === selected && toggle)) {
-      updated = SearchService.removeParam(url, param);
-    } else {
-      updated = SearchService.updateParam(url, param, id);
-    }
-
-    history.replace(updated);
+    const type: ChangeType =
+      id === 'default' || (id === selected && toggle) ? 'remove' : 'update';
+    onChange(type, param, id);
   };
 
   return (
@@ -88,4 +74,4 @@ export const OptionsFilter = (props: Props) => {
       ))}
     </div>
   );
-};
+});

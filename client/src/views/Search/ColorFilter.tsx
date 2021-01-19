@@ -2,8 +2,9 @@ import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import classNames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import SearchService from 'core/SearchService';
+import { ChangeType } from 'views/Search/FilterPanel';
 import { tuple } from 'core/types';
+import { memo } from 'react';
 
 interface ColorOption {
   id: string;
@@ -16,6 +17,7 @@ interface Props {
   param: string;
   selected: string;
   colors: ColorOption[];
+  onChange: (type: ChangeType, param: string, value: string) => void;
 }
 
 const colorStyle = ({ value, background }: ColorOption) => ({
@@ -78,27 +80,15 @@ const useStyles = makeStyles(() =>
   })
 );
 
-export const ColorFilter = (props: Props) => {
-  const history = useHistory();
+export const ColorFilter = memo((props: Props) => {
   const classes = useStyles(props.colors ?? []);
-  const { param, colors, selected } = props;
+  const { param, colors, selected, onChange } = props;
 
   const handleSelect = (id: string) => {
     if (id === selected) return;
 
-    const {
-      location: { pathname, search },
-    } = history;
-    const url = pathname + search;
-
-    let updated: string;
-    if (id === 'default') {
-      updated = SearchService.removeParam(url, param);
-    } else {
-      updated = SearchService.updateParam(url, param, id);
-    }
-
-    history.replace(updated);
+    const type: ChangeType = id === 'default' ? 'remove' : 'update';
+    onChange(type, param, id);
   };
 
   return (
@@ -120,4 +110,4 @@ export const ColorFilter = (props: Props) => {
       ))}
     </div>
   );
-};
+});
