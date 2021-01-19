@@ -38,6 +38,8 @@ Metrics/PerceivedComplexity:
   Enabled: false
 Layout/EmptyLineAfterGuardClause:
   Enabled: false
+Layout/FirstHashElementIndentation:
+  Enabled: false
 Layout/SpaceAroundMethodCallOperator:
   Enabled: false
 Lint/RescueException:

@@ -20,6 +20,34 @@ module Query
       end
     end
 
+    def path(value)
+      property "path", value
+    end
+
+    def from(value)
+      property "from", value
+    end
+
+    def size(value)
+      property "size", value
+    end
+
+    def gt(value)
+      property "gt", value
+    end
+
+    def gte(value)
+      property "gte", value
+    end
+
+    def lt(value)
+      property "lt", value
+    end
+
+    def lte(value)
+      property "lte", value
+    end
+
     def match_field(key, value, opts = {})
       property "match" do
         property key do
@@ -51,6 +79,69 @@ module Query
       end
     end
 
+    # shorthand query building
+
+
+    def shortform_query(hash, nested: false)
+      return unless hash&.length&.positive?
+      bool do
+        must do
+          hash.each_pair do |key, value|
+            element do
+              pair_to_query key, value, nested: nested
+            end
+          end
+        end
+      end
+    end
+
+    def pair_to_query(key, value, nested: false)
+      if key.include? "." and !nested
+        nested do
+          path key.split(".")[0]
+          if key.split(".")[1] == "*"
+            raise ArgumentError unless value.is_a? Hash
+            query do
+              shortform_query value, nested: true
+            end
+          else
+            query do
+              bool do
+                must do
+                  build_from_pair key, value
+                end
+              end
+            end
+          end
+        end
+      else
+        build_from_pair key, value
+      end
+    end
+
+    def build_from_pair(key, value)
+      case value
+      when Hash
+        raise ArgumentError unless value.key?(:type)
+        if value[:type] == "range"
+          range do
+            property key do
+              property value[:op], value[:value]
+            end
+          end
+        else
+          raise ArgumentError
+        end
+      when Array
+        terms do
+          property key, value
+        end
+      else
+        match do
+          property key, value
+        end
+      end
+    end
 
     # scopes
 
@@ -89,23 +180,31 @@ module Query
       property "match", QueryBuilder.new(scope: Json::Scope::OBJECT, &block).build
     end
 
+    def nested(&block)
+      property "nested", QueryBuilder.new(scope: Json::Scope::OBJECT, &block).build
+    end
+
+    def range(&block)
+      property "range", QueryBuilder.new(scope: Json::Scope::OBJECT, &block).build
+    end
+
     def bool(&block)
       property "bool", QueryBuilder.new(scope: Json::Scope::OBJECT, &block).build
     end
 
     def should(&block)
-      property "should", QueryBuilder.new(scope: Json::Scope::ARRAY, &block).build
+      property "should", QueryBuilder.new(&block).build
     end
 
     def must(&block)
-      property "should", QueryBuilder.new(scope: Json::Scope::OBJECT, &block).build
+      property "must", QueryBuilder.new(&block).build
     end
 
     private
 
     def maybe(options, key)
       return unless block_given?
-      yield if options.key?(key)
+      yield options[:key] if options.key?(key) and options[:key]
     end
   end
 

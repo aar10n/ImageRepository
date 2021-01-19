@@ -3,71 +3,86 @@ module SearchService
   # @param options [Hash{Symbol => Any}]
   def self.build_query(text, options)
     text = " " if text.nil? or text.empty?
-    puts ">> text = '#{text}'"
-    # key :color, is: in?(ALLOWED_COLORS)
-    # key :people, is: boolean?
-    # key :num_people, is: integer?
-    # key :min_height, is: integer?
-    # key :min_width, is: integer?
-    # key :orientation, is: in?(ALLOWED_ORIENTATIONS)
 
     query = Query.query do
+      from options[:page] - 1
+      size options[:page_size]
+
       query do
-        property "function_score" do
-          query do
-            match_field_multi "value", text.split(" ")
-          end
-
-          functions do
+        bool do
+          must do
             element do
-              property "field_value_factor" do
-                field "count"
-                property "factor", 1.1
-                property "modifier", "sqrt"
-                property "missing", 1
+              shortform_query({
+                "published_at" => {
+                  type: "range",
+                  op: "lte",
+                  value: "now"
+                },
+                "tags.*" => {
+                  "tags.kind" => %w[feature keyword],
+                  "tags.value" => text
+                }
+              })
+            end
+
+            if options[:color]
+              element do
+                shortform_query({
+                  "tags.*" => {
+                    "tags.kind" => "color",
+                    "tags.value" => options[:color]
+                  }
+                })
+              end
+            end
+
+            if options[:min_height]
+              element do
+                shortform_query({
+                  "height" => {
+                    type: "range",
+                    op: "gte",
+                    value: options[:min_height]
+                  }
+                })
+              end
+            end
+
+            if options[:min_width]
+              element do
+                shortform_query({
+                  "width" => {
+                    type: "range",
+                    op: "gte",
+                    value: options[:min_width]
+                  }
+                })
+              end
+            end
+
+            if options[:orientation]
+              element do
+                shortform_query({
+                  "orientation" => options[:orientation]
+                })
               end
             end
           end
-          # property "min_score", 20
-          property "boost_mode", "sum"
         end
-      end
-
-      # query do
-      #   match_field_multi "value", text.split(" ")
-      # end
-
-      aggs do
-        property "images" do
-          terms do
-            field "image"
-            property "order" do
-              property "total_score.sum", "desc"
-            end
-          end
-
-          aggs do
-            property "total_score" do
-              property "stats" do
-                property "script", "_score"
-              end
-            end
-          end
-        end
-      end
-
-      collapse do
-        field "image"
       end
     end
 
-    puts "query:"
-    puts JSON.pretty_generate(query)
-    puts ""
 
-    response = Tag.search query
-    puts ">> results:"
-    puts JSON.pretty_generate(response.results.as_json)
-    puts JSON.pretty_generate(response.aggregations.as_json)
+    response = Image.search query
+    response.results.map do |result|
+      src = result._source
+      {
+        id: src.id,
+        width: src.width,
+        height: src.height,
+        orientation: src.orientation,
+        url: src.url
+      }
+    end
   end
 end
