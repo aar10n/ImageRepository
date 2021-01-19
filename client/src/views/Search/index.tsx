@@ -2,8 +2,9 @@ import { ChangeEvent, KeyboardEvent, useMemo, useState } from 'react';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import SearchService, { SearchOptions } from 'core/SearchService';
-import { ColorFilter } from './ColorFilter';
-import { OptionsFilter } from './OptionsFilter';
+import { ColorFilter } from 'views/Search/ColorFilter';
+import { OptionsFilter } from 'views/Search/OptionsFilter';
+import { NumberFilter } from 'views/Search/NumberFilter';
 
 interface Params {
   query: string | undefined;
@@ -95,8 +96,14 @@ export const Search = () => {
         param="people"
         numPerRow={2}
         options={people}
-        selected={String(options.people)}
+        selected={String(options.people ?? '')}
         toggle
+      />
+      <NumberFilter
+        param="min_width"
+        selected={options.min_width ?? 0}
+        label="Min width"
+        min={1}
       />
     </div>
   );

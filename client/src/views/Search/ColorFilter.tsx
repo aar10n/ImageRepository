@@ -1,9 +1,9 @@
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import classNames from 'classnames';
-import { tuple } from 'core/types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import SearchService from 'core/SearchService';
+import { tuple } from 'core/types';
 
 interface ColorOption {
   id: string;
