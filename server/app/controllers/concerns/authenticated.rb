@@ -8,24 +8,27 @@ module Authenticated
   extend ActiveSupport::Concern
   extend ActionController
 
-  cattr_accessor :_auth_actions
-  cattr_accessor :_auth_model
-  cattr_accessor :_auth_param
+  def included(base)
+    base.extend ClassMethods
 
-  included do
-    @@_auth_actions = []
-    @@_auth_model = nil
-    @@_auth_attr = nil
-    @@_auth_param = nil
+    @_auth_actions = []
+    @_auth_model = nil
+    @_auth_attr = nil
+    @_auth_param = nil
   end
 
   # intercept actions
   def process(action, *args)
-    if action.to_sym.in? @@_auth_actions
-      param = params[@@_auth_param]
+    auth_actions = self.class._auth_actions
+    auth_model = self.class._auth_model
+    auth_attr = self.class._auth_attr
+    auth_param = self.class._auth_param
+
+    if action.to_sym.in? auth_actions
+      param = params[auth_param]
       auth = Utils.decode_auth(request.authorization)
       raise HttpError, 401 unless AUTH_VALIDATOR.call(auth)
-      model = @@_auth_model.find_by(@@_auth_attr => param, secret: auth[:pass])
+      model = auth_model&.find_by(id: param, auth_attr => auth[:pass])
       raise HttpError, 401 if model.nil?
     end
 
@@ -33,11 +36,13 @@ module Authenticated
   end
 
   module ClassMethods
-    def authorize(*actions, model: Image, attr: :id, using: :id)
-      class_variable_set(:@@_auth_actions, actions)
-      class_variable_set(:@@_auth_model, model)
-      class_variable_set(:@@_auth_attr, attr)
-      class_variable_set(:@@_auth_param, using)
+    attr_reader :_auth_actions, :_auth_model, :_auth_attr, :_auth_param
+
+    def authorize(*actions, model: Image, attr: :secret, param: :id)
+      @_auth_actions = actions
+      @_auth_model = model
+      @_auth_attr = attr
+      @_auth_param = param
     end
   end
 end
