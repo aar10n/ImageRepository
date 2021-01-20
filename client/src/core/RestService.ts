@@ -111,6 +111,14 @@ export default class RestService {
     });
   }
 
+  // Search
+
+  public static async searchImages(path: string): Promise<Thumbnail[]> {
+    const url = `${baseUrl}/api${path}`;
+    const res = await axios.get<Thumbnail[]>(url);
+    return res.data;
+  }
+
   // private
 
   private static makeAuthHeader(secret: string) {

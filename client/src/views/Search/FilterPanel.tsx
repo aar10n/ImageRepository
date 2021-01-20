@@ -2,8 +2,6 @@ import { useCallback } from 'react';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import SearchService, { SearchOptions } from 'core/SearchService';
 import { useHistory } from 'react-router-dom';
-import { faFilter } from '@fortawesome/free-solid-svg-icons';
-import { library } from '@fortawesome/fontawesome-svg-core';
 
 import { ColorFilter } from 'views/Search/ColorFilter';
 import { OptionsFilter } from 'views/Search/OptionsFilter';
@@ -18,8 +16,6 @@ interface FilterProps {
   name: string;
   children: React.ReactNode;
 }
-
-library.add(faFilter);
 
 const orientations = [
   { id: 'default', value: 'All orientations' },
@@ -66,12 +62,13 @@ const people = [
 const useStyles = makeStyles(() =>
   createStyles({
     container: {
-      width: '280px',
+      width: '100%',
       display: 'flex',
       flexDirection: 'column',
     },
     filter: {
       marginLeft: '24px',
+      marginRight: '24px',
       marginBottom: '18px',
     },
     filterLabel: {

@@ -72,7 +72,6 @@ export class LayoutEngine {
       },
     };
     this.debug = config?.debug ?? false;
-    // console.log(items);
     this.boxes = items.map(item => {
       const orientation = this.getOrientation(item);
       const config = this.config[orientation];
@@ -188,7 +187,6 @@ export class LayoutEngine {
         this.log('>>> DONE');
         this.log(this.getRowString([row, newScore]));
         this.log('----------------');
-        // rows.push([row, newScore]);
         rows.push([row, score]);
       } else if (shrinkWidth <= width) {
         // there is flexibility in the row but it goes against the preferred
@@ -495,6 +493,18 @@ export class LayoutEngine {
     return [...boxes].sort(
       (a, b) => this.getConfig(a)[key] - this.getConfig(b)[key]
     );
+  }
+
+  /**
+   * Resets a box to its original width, shrink and flex.
+   */
+  private resetBox(box: Box): Box {
+    const config = this.getConfig(box);
+    box.width = config.width;
+    box.flex = Math.abs(config.maxWidth - config.minWidth);
+    box.shrink = Math.abs(config.minWidth - config.width);
+    box.stretch = Math.abs(config.maxWidth - config.width);
+    return box;
   }
 
   /**

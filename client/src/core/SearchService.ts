@@ -13,13 +13,6 @@ const NUMBER = new RegExp('^[0-9]+$');
 const COLORS = Object.values(Color);
 const ORIENTATIONS = Object.values(Orientation);
 
-// color?: string;
-// people?: boolean;
-// num_people?: number;
-// min_height?: number;
-// min_width?: number;
-// orientation?: Orientation;
-
 export default class SearchService {
   private constructor() {}
 
@@ -49,11 +42,11 @@ export default class SearchService {
 
   //
 
-  public static removeParam(url: string, param: string): string {
-    return url.replace(
-      new RegExp(`((&|\\?)${param}=[^&]+$|${param}=[^&]+&?)`),
-      ''
-    );
+  public static updatePath(path: string, query: string, arg: string): string {
+    const re = /(?<=\/search)(\/.*)$/;
+    const escaped = encodeURI(arg.replace(' ', '+'));
+    const updated = `${path.replace(re, '')}${escaped ? `/${escaped}` : ''}`;
+    return `${updated}${query}`;
   }
 
   public static updateParam(url: string, param: string, value: any): string {
@@ -68,6 +61,13 @@ export default class SearchService {
 
     const sep = parts[1] !== undefined ? '&' : '?';
     return `${url}${sep}${param}=${escaped}`;
+  }
+
+  public static removeParam(url: string, param: string): string {
+    return url.replace(
+      new RegExp(`((&|\\?)${param}=[^&]+$|${param}=[^&]+&?)`),
+      ''
+    );
   }
 
   //

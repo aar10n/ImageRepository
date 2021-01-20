@@ -42,6 +42,11 @@ const useStyles = makeStyles(() =>
       backgroundColor: '#2e3035',
       borderBottom: '1px solid rgb(160,160,160)',
 
+      '&:focus': {
+        borderBottom: '1px solid #2196f3',
+        transition: 'border-bottom 0.125s linear',
+      },
+
       '&::placeholder': {
         color: 'rgb(160,160,160)',
       },

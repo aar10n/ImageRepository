@@ -93,9 +93,9 @@ export const Gallery = (props: Props) => {
       square: {
         width: 3,
         minWidth: 3,
-        maxWidth: 4,
+        maxWidth: 3,
         shrinkPenalty: 500,
-        stretchPenalty: 500,
+        stretchPenalty: 400,
       },
       landscape: {
         width: 4,
@@ -104,6 +104,7 @@ export const Gallery = (props: Props) => {
         shrinkPenalty: 200,
         stretchPenalty: 0,
       },
+      debug: true,
     });
 
     layoutEngine.current = engine;
@@ -136,12 +137,12 @@ export const Gallery = (props: Props) => {
           <div
             className={classes.item}
             style={getStyles(spans[index])}
-            key={index}
+            key={image.id}
             onClick={() => {
               history.push(`/i/${image.id}`);
             }}
           >
-            <img className={classes.image} src={image.url} alt="" />
+            <img className={classes.image} src={image.url} alt={image.id} />
           </div>
         ))}
     </div>

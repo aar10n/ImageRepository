@@ -1,100 +1,160 @@
-import {
-  ChangeEvent,
-  KeyboardEvent,
-  useCallback,
-  useMemo,
-  useState,
-} from 'react';
+import { KeyboardEvent, useEffect, useMemo, useState } from 'react';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
-import { useHistory, useLocation, useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFilter, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { library } from '@fortawesome/fontawesome-svg-core';
+
 import SearchService, { SearchOptions } from 'core/SearchService';
-import { ColorFilter } from 'views/Search/ColorFilter';
-import { OptionsFilter } from 'views/Search/OptionsFilter';
-import { NumberFilter } from 'views/Search/NumberFilter';
-import { FilterPanel } from './FilterPanel';
+import { FilterPanel } from 'views/Search/FilterPanel';
+import { Gallery } from 'views/Gallery';
+import { Thumbnail } from 'core/types';
+import RestService from 'core/RestService';
 
 interface Params {
   query: string | undefined;
 }
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    container: {
-      width: '20%',
-    },
-  })
-);
+library.add(faFilter, faSearch);
 
 const useQuery = (query: string): SearchOptions =>
   useMemo(() => SearchService.validateOptions(query), [query]);
 
-const orientations = [
-  { id: 'default', value: 'All orientations' },
-  { id: 'landscape', value: 'Landscape' },
-  { id: 'portrait', value: 'Portrait' },
-  { id: 'square', value: 'Square' },
-];
+const useStyles = makeStyles(() =>
+  createStyles({
+    container: {
+      width: '100%',
+      height: '100%',
+      display: 'grid',
+      gridTemplateAreas: `
+        "a c"
+        "b d"
+      `,
+      gridTemplateColumns: '304px 1fr',
+      gridTemplateRows: '58px 1fr',
+    },
+    filterTitle: {
+      gridArea: 'a',
+      display: 'flex',
+      alignItems: 'center',
+      marginLeft: '24px',
+      fontSize: '14px',
+    },
+    filters: {
+      gridArea: 'b',
+    },
+    search: {
+      gridArea: 'c',
+      display: 'flex',
+      alignItems: 'center',
+    },
+    results: {
+      gridArea: 'd',
+      // backgroundColor: 'red',
+      width: '100%',
+      height: '100%',
+    },
 
-const colors = [
-  {
-    id: 'default',
-    value: '#CACDD2',
-    icon: 'times',
-  },
-  {
-    id: 'grayscale',
-    value:
-      'linear-gradient(135deg, rgb(202, 205, 210) 0%,' +
-      'rgb(202, 205, 210) 49%, rgb(22, 25, 30) 50%,' +
-      'rgb(22, 25, 30) 100%)',
-    background: '#CACDD2',
-  },
-  { id: 'red', value: '#E72525' },
-  { id: 'orange', value: '#F48700' },
-  { id: 'amber', value: '#ECA71D' },
-  { id: 'yellow', value: '#F1F12A' },
-  { id: 'lime', value: '#A9E418' },
-  { id: 'green', value: '#06D506' },
-  { id: 'teal', value: '#0ECB9C' },
-  { id: 'turquoise', value: '#1AE0E0' },
-  { id: 'aqua', value: '#0BBBF5' },
-  { id: 'azure', value: '#2055F8' },
-  { id: 'blue', value: '#0000FF' },
-  { id: 'purple', value: '#7F00FF' },
-  { id: 'orchid', value: '#BF00FF' },
-  { id: 'magenta', value: '#EA06B1' },
-];
+    titleText: {
+      marginLeft: '8px',
+      fontSize: '16px',
+      fontWeight: 'bold',
+    },
+    searchBar: {
+      width: '98%',
+      backgroundColor: '#424242',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      display: 'flex',
+      lineHeight: '18px',
+    },
+    searchInput: {
+      backgroundColor: 'transparent',
+      width: '100%',
+      height: '100%',
+      padding: '14px',
+      color: 'white',
+      outline: 'none',
+      border: 'none',
+      fontSize: '16px',
 
-const people = [
-  { id: 'true', value: 'With people' },
-  { id: 'false', value: 'Without people' },
-];
+      '&::placeholder': {
+        color: 'rgba(255, 255, 255, 0.5)',
+      },
+    },
+    searchButton: {
+      padding: '14px',
+      width: '56px',
+      backgroundColor: '#F54336',
+      fontSize: '18px',
+      cursor: 'pointer',
+      '& *': {
+        transform: 'translateX(2px)',
+      },
+    },
+  })
+);
 
 export const Search = () => {
   const history = useHistory();
   const params = useParams<Params>();
   const options = useQuery(history.location.search);
-  const [search, setSearch] = useState(params.query ?? '');
+  const [value, setValue] = useState(params.query ?? '');
+  const [images, setImages] = useState<Thumbnail[]>([]);
   const classes = useStyles();
+
+  const doSearch = async () => {
+    const { pathname, search } = history.location;
+    const url = SearchService.updatePath(pathname, search, value);
+    history.push(url);
+
+    const images = await RestService.searchImages(url);
+    setImages(images);
+  };
 
   const handleKeypress = (event: KeyboardEvent<HTMLInputElement>) => {
     const { key } = event;
     if (key === 'Enter') {
-      console.log('search!');
+      doSearch();
     }
   };
 
+  // useEffect(() => {
+  //   doSearch();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
+
+  useEffect(() => {
+    doSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options]);
+
   return (
     <div className={classes.container}>
-      Search
-      <div>
-        <input
-          onKeyPress={handleKeypress}
-          onChange={event => setSearch(event.target.value)}
-          value={search}
-        ></input>
+      <div className={classes.filterTitle}>
+        <FontAwesomeIcon icon="filter" />
+        <span className={classes.titleText}>Filters</span>
       </div>
-      <FilterPanel options={options} />
+      <div className={classes.filters}>
+        <FilterPanel options={options} />
+      </div>
+      <div className={classes.search}>
+        <div className={classes.searchBar}>
+          <input
+            className={classes.searchInput}
+            value={value}
+            placeholder="Search for images"
+            onKeyPress={handleKeypress}
+            onChange={event => setValue(event.target.value)}
+          />
+          <div className={classes.searchButton} onClick={doSearch}>
+            <FontAwesomeIcon icon="search" />
+          </div>
+        </div>
+      </div>
+      <div className={classes.results}>
+        <Gallery images={images} />
+      </div>
     </div>
   );
 };
