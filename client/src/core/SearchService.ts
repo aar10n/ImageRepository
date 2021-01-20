@@ -49,6 +49,13 @@ export default class SearchService {
     return `${updated}${query}`;
   }
 
+  public static getSearchPath(path: string): string {
+    const re = /(?<=\/search\/)(.*)$/;
+    const part = path.match(re)?.[0]?.split('?')?.[0];
+    if (!part) return '';
+    return decodeURI(part).replace('+', ' ');
+  }
+
   public static updateParam(url: string, param: string, value: any): string {
     const escaped = String(value).replace(' ', '+');
     const parts = url.split('?');

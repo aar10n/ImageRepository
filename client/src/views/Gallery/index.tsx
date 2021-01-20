@@ -80,7 +80,7 @@ export const Gallery = (props: Props) => {
   });
 
   useEffect(() => {
-    if (images.length === 0) return;
+    if ((images?.length ?? 0) === 0) return;
 
     const engine = new LayoutEngine(images, {
       portrait: {
@@ -104,7 +104,6 @@ export const Gallery = (props: Props) => {
         shrinkPenalty: 200,
         stretchPenalty: 0,
       },
-      debug: true,
     });
 
     layoutEngine.current = engine;
@@ -133,7 +132,7 @@ export const Gallery = (props: Props) => {
   return (
     <div id="gallery" ref={galleryRef} className={classes.grid}>
       {columns > 0 &&
-        images.map((image, index) => (
+        (images ?? []).map((image, index) => (
           <div
             className={classes.item}
             style={getStyles(spans[index])}

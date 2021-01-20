@@ -1,15 +1,17 @@
 import { useEffect } from 'react';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
+import { useDispatch } from 'react-redux';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import { loadSavedSecrets } from 'redux/image/actions';
 
 import { Search } from 'views/Search';
 import { Upload } from 'views/Upload';
 import { Image } from 'views/Image';
 import { Toast } from 'views/Toast';
-import { useDispatch } from 'react-redux';
-import { loadSavedSecrets } from 'redux/image/actions';
+import { NotFound } from 'views/404';
 import { Home } from 'views/Home';
+import { Navbar } from 'views/Navbar';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -17,13 +19,10 @@ const useStyles = makeStyles(() =>
       width: '100%',
       height: '100%',
     },
-    filter: {
-      width: '30%',
-      float: 'left',
-    },
-    gallery: {
-      width: '70%',
-      float: 'right',
+    navbar: {
+      width: '100%',
+      height: '80px',
+      marginBottom: '10px',
     },
   })
 );
@@ -39,7 +38,11 @@ const App = () => {
   return (
     <div className={classes.root}>
       <CssBaseline />
+
       <Router>
+        <div className={classes.navbar}>
+          <Navbar />
+        </div>
         <Switch>
           <Route exact path="/">
             <Home />
@@ -56,6 +59,8 @@ const App = () => {
           <Route path="/i/:id">
             <Image />
           </Route>
+
+          <Route component={NotFound} />
         </Switch>
 
         <Toast />

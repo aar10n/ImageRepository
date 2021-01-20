@@ -1,18 +1,10 @@
 import { CreatedImage, Image, ImageInfo, Tag } from 'core/types';
 import { ActionType, BaseAction } from 'redux/types';
 
-export type RequestStatus =
-  | 'idle'
-  | 'uploading'
-  | 'waiting'
-  | 'success'
-  | 'failure';
-
 export interface ImageState {
   owned: Record<string, string>;
   loaded: Record<string, Image>;
   current: string | null;
-  requestStatus: RequestStatus;
 }
 
 // actions
@@ -53,11 +45,6 @@ export interface LoadSavedSecretsAction
   owned: Record<string, string>;
 }
 
-export interface SetRequestStatusAction
-  extends BaseAction<ActionType.SET_REQUEST_STATUS> {
-  status: RequestStatus;
-}
-
 export type ImageActions =
   | UploadImagesAction
   | FetchImageAction
@@ -65,5 +52,4 @@ export type ImageActions =
   | DeleteImageAction
   | AddTagAction
   | DeleteTagAction
-  | LoadSavedSecretsAction
-  | SetRequestStatusAction;
+  | LoadSavedSecretsAction;

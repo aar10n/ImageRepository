@@ -1,6 +1,7 @@
 import { AnyAction } from 'redux';
 import { ThunkDispatch } from 'redux-thunk';
 import { ImageActions, ImageState } from './image/types';
+import { RequestState } from './request/types';
 import { ToastActions, ToastState } from './toast/types';
 
 export enum ActionType {
@@ -20,6 +21,7 @@ export enum ActionType {
 
 export interface AppState {
   image: ImageState;
+  request: RequestState;
   toast: ToastState;
 }
 

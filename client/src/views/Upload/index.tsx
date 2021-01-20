@@ -6,9 +6,10 @@ import { useHistory } from 'react-router-dom';
 import { Gradient } from 'views/Upload/Gradient';
 import { Loading } from 'views/Upload/Loading';
 import { index } from 'core/utils';
-import { uploadImages, setRequestStatus } from 'redux/image/actions';
-import { getCurrent, getRequestStatus } from 'redux/image/selectors';
+import { uploadImages } from 'redux/image/actions';
 import { clearToast } from 'redux/toast/actions';
+import { getRequestStatus } from 'redux/request/selectors';
+import { setRequestStatus } from 'redux/request/actions';
 
 export type DragState = 'dragenter' | 'dragover' | 'dragleave' | 'drop';
 
@@ -110,8 +111,7 @@ const useStyles = makeStyles(() =>
 export const Upload = () => {
   const [dragState, setDragState] = useState<DragState>();
   const [elemStack, setElemStack] = useState<HTMLElement[]>([]);
-  const requestStatus = useSelector(getRequestStatus);
-  const current = useSelector(getCurrent);
+  const requestStatus = useSelector(getRequestStatus('uploadImages'));
   const dispatch = useDispatch();
   const classes = useStyles();
   const history = useHistory();
@@ -148,22 +148,13 @@ export const Upload = () => {
 
   const handleUpload = async (files: FileList) => {
     if (files.length === 0) return;
-    await dispatch(uploadImages(files));
-  };
-
-  useEffect(() => {
-    if (!current) return;
-    history.push(`/i/${current.id}`);
-  }, [current, history]);
-
-  useEffect(() => {
-    if (requestStatus === 'success') {
-      history.push(`/i/${current?.id}`);
-    } else if (requestStatus === 'failure') {
-      // dispatch(setUploadStatus('idle'));
+    const images = (await dispatch(uploadImages(files))) as any;
+    if (images) {
+      history.push(`/i/${images[0].id}`);
+    } else {
       history.replace(`/upload`);
     }
-  }, [requestStatus, current, history, dispatch]);
+  };
 
   // subcomponents
 
@@ -207,7 +198,7 @@ export const Upload = () => {
         className={classes.tryAgain}
         onClick={() => {
           dispatch(clearToast());
-          dispatch(setRequestStatus('idle'));
+          dispatch(setRequestStatus('uploadImages', 'idle'));
         }}
       >
         Try Again
@@ -215,19 +206,23 @@ export const Upload = () => {
     </div>
   );
 
+  console.log(`Upload - render`);
+  console.log(requestStatus);
   return (
     <div className={classes.container}>
       <div className={classes.box}>
-        {requestStatus === 'idle' ? (
-          <UploadBox />
-        ) : requestStatus === 'uploading' || requestStatus === 'waiting' ? (
+        {requestStatus === 'uploading' || requestStatus === 'waiting' ? (
           <LoadingIndicator />
         ) : requestStatus === 'failure' ? (
           <FailureText />
-        ) : null}
+        ) : (
+          <UploadBox />
+        )}
 
         <div className={classes.close}>
-          <div className={classes.closeIcon}>&#x2715;</div>
+          <div className={classes.closeIcon} onClick={() => history.push('/')}>
+            &#x2715;
+          </div>
         </div>
       </div>
     </div>

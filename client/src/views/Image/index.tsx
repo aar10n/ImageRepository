@@ -13,20 +13,16 @@ interface Params {
 const useStyles = makeStyles(() =>
   createStyles({
     container: {
-      width: '100%',
-      height: '100%',
+      marginLeft: '25%',
+      marginRight: '25%',
+      marginTop: '20px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      // backgroundColor: '#2e3035',
+      overflow: 'hidden',
     },
     content: {
-      // width: 'auto !important',
-      width: '100%',
-      maxWidth: '60%',
-      // height: '100%',
-      // marginLeft: '25%',
-      // marginRight: '25%',
+      maxHeight: '10%',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -67,7 +63,8 @@ const useStyles = makeStyles(() =>
       },
     },
     image: {
-      width: '100%',
+      maxWidth: '100%',
+      maxHeight: '100%',
     },
 
     hiddenInputContainer: {
@@ -123,10 +120,10 @@ export const Image = () => {
         <div className={classes.content}>
           <div className={classes.title}>
             <span
-              className={owner ? classes.editableText : ''}
+              className={owner ? classes.editableText : ' '}
               contentEditable={owner}
               suppressContentEditableWarning={true}
-              placeholder="Title..."
+              placeholder="Title"
               ref={titleRef}
               onKeyDown={event => handleKeypress(event, 'title')}
               onFocus={event => {
@@ -155,7 +152,7 @@ export const Image = () => {
               className={owner ? classes.editableText : ''}
               contentEditable={owner}
               suppressContentEditableWarning={true}
-              placeholder="Title..."
+              placeholder="Description"
               ref={descRef}
               onKeyDown={event => handleKeypress(event, 'description')}
               onFocus={event => {

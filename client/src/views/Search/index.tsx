@@ -1,4 +1,4 @@
-import { KeyboardEvent, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { useHistory, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,7 +9,8 @@ import SearchService, { SearchOptions } from 'core/SearchService';
 import { FilterPanel } from 'views/Search/FilterPanel';
 import { Gallery } from 'views/Gallery';
 import { Thumbnail } from 'core/types';
-import RestService from 'core/RestService';
+import { useDispatch } from 'react-redux';
+import { searchImages } from 'redux/image/actions';
 
 interface Params {
   query: string | undefined;
@@ -27,11 +28,9 @@ const useStyles = makeStyles(() =>
       height: '100%',
       display: 'grid',
       gridTemplateAreas: `
-        "a c"
-        "b d"
+        "a b"
       `,
       gridTemplateColumns: '304px 1fr',
-      gridTemplateRows: '58px 1fr',
     },
     filterTitle: {
       gridArea: 'a',
@@ -39,17 +38,13 @@ const useStyles = makeStyles(() =>
       alignItems: 'center',
       marginLeft: '24px',
       fontSize: '14px',
+      marginBottom: '16px',
     },
     filters: {
-      gridArea: 'b',
-    },
-    search: {
-      gridArea: 'c',
-      display: 'flex',
-      alignItems: 'center',
+      gridArea: 'a',
     },
     results: {
-      gridArea: 'd',
+      gridArea: 'b',
       // backgroundColor: 'red',
       width: '100%',
       height: '100%',
@@ -85,7 +80,7 @@ const useStyles = makeStyles(() =>
     searchButton: {
       padding: '14px',
       width: '56px',
-      backgroundColor: '#F54336',
+      backgroundColor: '#01b96b',
       fontSize: '18px',
       cursor: 'pointer',
       '& *': {
@@ -98,60 +93,33 @@ const useStyles = makeStyles(() =>
 export const Search = () => {
   const history = useHistory();
   const params = useParams<Params>();
+  const dispatch = useDispatch();
   const options = useQuery(history.location.search);
-  const [value, setValue] = useState(params.query ?? '');
   const [images, setImages] = useState<Thumbnail[]>([]);
   const classes = useStyles();
 
-  const doSearch = async () => {
-    const { pathname, search } = history.location;
-    const url = SearchService.updatePath(pathname, search, value);
-    history.push(url);
-
-    const images = await RestService.searchImages(url);
-    setImages(images);
-  };
-
-  const handleKeypress = (event: KeyboardEvent<HTMLInputElement>) => {
-    const { key } = event;
-    if (key === 'Enter') {
-      doSearch();
-    }
-  };
-
-  // useEffect(() => {
-  //   doSearch();
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
-
   useEffect(() => {
-    doSearch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options]);
+    const doSearch = async (url: string) => {
+      const images = (await dispatch(searchImages(url))) as any;
+      setImages(images);
+    };
+
+    const { pathname, search } = history.location;
+    const url = SearchService.updatePath(pathname, search, params.query ?? '');
+    doSearch(url);
+  }, [options, dispatch, params.query, history.location]);
 
   return (
     <div className={classes.container}>
-      <div className={classes.filterTitle}>
-        <FontAwesomeIcon icon="filter" />
-        <span className={classes.titleText}>Filters</span>
-      </div>
       <div className={classes.filters}>
+        <div className={classes.filterTitle}>
+          <FontAwesomeIcon icon="filter" />
+          <span className={classes.titleText}>Filters</span>
+        </div>
+
         <FilterPanel options={options} />
       </div>
-      <div className={classes.search}>
-        <div className={classes.searchBar}>
-          <input
-            className={classes.searchInput}
-            value={value}
-            placeholder="Search for images"
-            onKeyPress={handleKeypress}
-            onChange={event => setValue(event.target.value)}
-          />
-          <div className={classes.searchButton} onClick={doSearch}>
-            <FontAwesomeIcon icon="search" />
-          </div>
-        </div>
-      </div>
+
       <div className={classes.results}>
         <Gallery images={images} />
       </div>

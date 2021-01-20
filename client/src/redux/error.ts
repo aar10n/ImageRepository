@@ -13,9 +13,12 @@ const errorMiddleware = (_: MiddlewareAPI<Dispatch, AppState>) => (
   next: Dispatch
 ) => (action: SomeAction) => {
   const handleError = (error: any) => {
+    console.error(error);
     if (isHttpError(error)) {
       const { response } = error;
       next(setToast('error', `${response?.status} ${response?.statusText}`));
+    } else {
+      next(setToast('error', `An error occurred`));
     }
   };
 

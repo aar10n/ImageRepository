@@ -1,6 +1,5 @@
 import { Image } from 'core/types';
 import { AppState } from 'redux/types';
-import { RequestStatus } from './types';
 
 export const isOwner = (id: string) => (state: AppState): boolean =>
   state.image.owned[id] !== undefined;
@@ -16,6 +15,3 @@ export const getImage = (id: string) => (state: AppState): Image | null =>
 
 export const getSecret = (id: string) => (state: AppState): string | null =>
   state.image.owned[id] ?? null;
-
-export const getRequestStatus = (state: AppState): RequestStatus =>
-  state.image.requestStatus;

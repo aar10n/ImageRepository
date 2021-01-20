@@ -103,6 +103,7 @@ export const Tags = (props: Props) => {
       event.preventDefault();
       const text = event.currentTarget.innerText;
       dispatch(addTag(image.id, text));
+      setShowInput(false);
     } else if (key === 'Escape') {
       setShowInput(false);
     }

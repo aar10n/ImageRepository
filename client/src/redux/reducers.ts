@@ -1,5 +1,6 @@
 import { combineReducers } from 'redux';
 import { toastReducer } from 'redux/toast/reducer';
+import { requestReducer } from './request/reducer';
 import { imageReducer } from './image/reducer';
 import { BaseAction, SafeReducer, Reducers } from './types';
 
@@ -20,5 +21,6 @@ export function createReducer<S, A extends BaseAction<any>>(
 
 export default combineReducers({
   toast: toastReducer,
+  request: requestReducer,
   image: imageReducer,
 });
