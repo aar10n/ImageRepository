@@ -2,7 +2,7 @@ module SearchService
   # @param text [String]
   # @param options [Hash{Symbol => Any}]
   def self.build_query(text, options)
-    text = " " if text.nil? or text.empty?
+    text = nil if text.nil? or text.empty?
 
     query = Query.query do
       from options[:page] - 1
@@ -17,12 +17,21 @@ module SearchService
                   type: "range",
                   op: "lte",
                   value: "now"
-                },
-                "tags.*" => {
-                  "tags.kind" => %w[feature keyword],
-                  "tags.value" => text
                 }
               })
+            end
+
+            element do
+              if text
+                shortform_query({
+                  "tags.*" => {
+                    "tags.kind" => %w[feature keyword],
+                    "tags.value" => text
+                  }
+                })
+              else
+                property "match_all", object
+              end
             end
 
             if options[:color]
@@ -31,6 +40,17 @@ module SearchService
                   "tags.*" => {
                     "tags.kind" => "color",
                     "tags.value" => options[:color]
+                  }
+                })
+              end
+            end
+
+            if options[:people]
+              element do
+                shortform_query({
+                  "tags.*" => {
+                    "tags.kind" => %w[feature],
+                    "tags.value" => "person"
                   }
                 })
               end
@@ -71,6 +91,7 @@ module SearchService
         end
       end
     end
+
 
 
     response = Image.search query
