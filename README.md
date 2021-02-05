@@ -1,10 +1,9 @@
-# Shopify Challenge 2021
+# Image Repository
 
-This is my entry for the 2021 Shopify Developer Intern Challenge. It includes a complete front
-and back-end, as well as an AI powered microservice that provides automatic tagging of prominent 
-image features. I had a ton of fun working on this, even though it did end up being a lot more than
-I originally set out to do. Below, you can find a description of the different components, some 
-instructions on how to run it, and finally some screenshots of the front-end.
+It includes a complete front and back-end, as well as an AI powered microservice that provides automatic 
+tagging of prominent image features. I had a ton of fun working on this, even though it did end up being 
+a lot more than I originally set out to do. Below, you can find a description of the different components, 
+some  instructions on how to run it, and finally some screenshots of the front-end.
 
 ## Structure
 
